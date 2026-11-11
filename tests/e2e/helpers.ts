@@ -140,7 +140,15 @@ export interface PrepareFestivalOptions {
   festival?: Partial<FestivalCreateInput>
   /** Route nach dem Neuladen (Standard '/festbuero') */
   route?: string
+  /**
+   * Standarddrucker. Standard: der simulierte `E2E-Testdrucker` (erscheint nur unter Playwright in der
+   * Druckerliste; gedruckt wird per Dry-Run). `null` = keinen Drucker setzen (Fall „Kein Drucker ausgewählt“).
+   */
+  printer?: string | null
 }
+
+/** Simulierter Drucker, den die App unter Playwright zusätzlich anbietet (siehe services/printing.ts). */
+export const E2E_TEST_PRINTER = 'E2E-Testdrucker'
 
 /**
  * Richtet die App für Tests ein: Dokumentenordner = temp, Ersteinrichtung abgeschlossen,
@@ -160,7 +168,8 @@ export async function prepareFestival(page: Page, opts: PrepareFestivalOptions =
     numberDigits: 3,
     ...opts.festival
   })
-  await invoke(page, 'app.updateSettings', { documentsDir, setupCompleted: true, lastFestivalId: festival.id })
+  const defaultPrinter = opts.printer === undefined ? E2E_TEST_PRINTER : opts.printer
+  await invoke(page, 'app.updateSettings', { documentsDir, setupCompleted: true, lastFestivalId: festival.id, defaultPrinter })
   await gotoRoute(page, opts.route ?? '/festbuero', { reload: true })
   await expect(page.getByTestId('app-header')).toBeVisible()
   return festival

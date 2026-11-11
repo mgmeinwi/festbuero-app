@@ -22,7 +22,7 @@ import { getSampleRenderData } from '@shared/invoice-render/sample-data'
 import type { PrinterInfo, PrinterStatus, PrintResult, TemplateConfig } from '@shared/types'
 import { getDb, nowIso, type Db } from '../db/connection'
 import * as repo from '../db/repositories/invoices'
-import { getPrintDryRunLogPath, isFakePrintFail, isPrintDryRun } from '../env'
+import { getPrintDryRunLogPath, isE2E, isFakePrintFail, isPrintDryRun } from '../env'
 import { isShuttingDown, registerShutdownHook } from '../lifecycle'
 import { emitToRenderer, getMainWindow, requireMainWindow } from '../window'
 import { ensureInvoicePdf, type PdfResult } from './filing'
@@ -51,10 +51,23 @@ function isDefaultPrinter(options: Record<string, unknown> | undefined): boolean
   return false
 }
 
+/**
+ * Simulierter Drucker, der nur unter Playwright (`FESTBUERO_E2E=1`) zusätzlich in der Liste erscheint.
+ * So hängen Tests nicht von den Druckern des Rechners ab (CI hat keine), und `prepareFestival()`
+ * kann ihn als Standarddrucker setzen. Gedruckt wird in E2E ohnehin nur per Dry-Run.
+ */
+export const E2E_TEST_PRINTER = 'E2E-Testdrucker'
+
+function withE2ePrinter(printers: Electron.PrinterInfo[]): Electron.PrinterInfo[] {
+  if (!isE2E() || printers.some((p) => p.name === E2E_TEST_PRINTER)) return printers
+  const fake = { name: E2E_TEST_PRINTER, displayName: E2E_TEST_PRINTER, description: '', status: 0, isDefault: false, options: {} }
+  return [...printers, fake as unknown as Electron.PrinterInfo]
+}
+
 /** Installierte Drucker über `webContents.getPrintersAsync()` des Hauptfensters. */
 export async function listPrinters(): Promise<PrinterInfo[]> {
   const win = requireMainWindow()
-  const printers = await win.webContents.getPrintersAsync()
+  const printers = withE2ePrinter(await win.webContents.getPrintersAsync())
   return printers
     .map((p) => ({
       name: p.name,
@@ -69,7 +82,7 @@ async function systemPrinters(): Promise<Electron.PrinterInfo[] | null> {
   const win = getMainWindow()
   if (!win) return null
   try {
-    return await win.webContents.getPrintersAsync()
+    return withE2ePrinter(await win.webContents.getPrintersAsync())
   } catch {
     return null
   }
