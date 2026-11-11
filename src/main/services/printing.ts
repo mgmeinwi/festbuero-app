@@ -276,6 +276,8 @@ export async function checkPrinter(
   printer: string,
   deps: Pick<PrintDeps, 'exec' | 'platform' | 'listSystemPrinters'> = {}
 ): Promise<PrinterCheck> {
+  // Simulierter Testdrucker (nur unter Playwright): immer bereit, nie das System befragen.
+  if (isE2E() && printer === E2E_TEST_PRINTER) return { state: 'ok' }
   const platform = deps.platform ?? process.platform
   const list = await (deps.listSystemPrinters ?? systemPrinters)()
   if (list) {

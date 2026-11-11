@@ -242,11 +242,21 @@ test.describe.serial('Abschluss & Druck: Normalablauf', () => {
     expect(await invoke(ctx.page, 'invoices.nextNumberPreview', s.festival.id)).toBe('2025-083')
   })
 
-  test('Druckerstatus: gespeicherter Drucker fehlt → nicht verfügbar mit Begründung', async () => {
-    const status = await invoke(ctx.page, 'printing.getStatus')
-    expect(status.printer).toBe(PRINTER)
-    expect(status.available).toBe(false)
-    expect(status.message).toMatch(/nicht gefunden|deaktiviert/)
+  test('Druckerstatus: simulierter Testdrucker bereit, fehlender Drucker → nicht verfügbar mit Begründung', async () => {
+    const ok = await invoke(ctx.page, 'printing.getStatus')
+    expect(ok.printer).toBe(PRINTER)
+    expect(ok.available).toBe(true)
+
+    const missing = 'Gibt-es-nicht-Drucker'
+    await invoke(ctx.page, 'app.updateSettings', { defaultPrinter: missing })
+    try {
+      const status = await invoke(ctx.page, 'printing.getStatus')
+      expect(status.printer).toBe(missing)
+      expect(status.available).toBe(false)
+      expect(status.message).toMatch(/nicht gefunden|deaktiviert/)
+    } finally {
+      await invoke(ctx.page, 'app.updateSettings', { defaultPrinter: PRINTER })
+    }
   })
 })
 
