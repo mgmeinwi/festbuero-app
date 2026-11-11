@@ -198,6 +198,8 @@ export interface ClubImportRow {
   registeredPersons: number | null
   /** leer = Zeile gültig; sonst deutsche Fehlermeldungen */
   errors: string[]
+  /** Hinweise, die den Import nicht verhindern (z. B. Vereinsname mehrfach in der Datei) */
+  warnings?: string[]
 }
 
 export interface ClubImportPreview {
@@ -213,6 +215,10 @@ export interface ClubImportPreview {
   existingImportedCount: number
   /** Namen manuell angelegter Vereine, die wegen gleichem Vereinsnamen ersetzt würden */
   replacedManualClubs: string[]
+  /** optionale Spalten (Name, Straße, PLZ, Ort), die nicht gefunden wurden – nur Hinweis */
+  missingOptionalColumns?: string[]
+  /** Zeilennummer der erkannten Kopfzeile (1-basiert); null, wenn keine gefunden wurde */
+  headerRow?: number | null
 }
 
 export interface ClubImportResult {
@@ -292,6 +298,8 @@ export interface TemplateConfig {
   }
   /** Formatierung des Zahlungstexts; Inhalt kommt aus der gewählten Zahlungsart */
   payment: { fontSizePt?: number; align?: TextAlign }
+  /** Formatierung des automatischen Steuerhinweises (Text aus den Fest-Einstellungen); optional */
+  taxNote?: { fontSizePt?: number; align?: TextAlign }
   /** Fußzeile am Seitenende, 1 bis 4 Spalten */
   footer: { columns: RichTextBlock[]; fontSizePt?: number }
 }
@@ -466,6 +474,8 @@ export interface InvoiceRenderData {
   totals: InvoiceTotals
   taxExempt: boolean
   taxExemptText: string
+  /** nur Storno: Grund der Stornierung (erscheint unter der Einleitung, Platzhalter {Stornogrund}) */
+  stornoReason?: string | null
 }
 
 /* ------------------------------------------------------------------ */
@@ -482,6 +492,8 @@ export interface PrinterInfo {
 export interface PrinterStatus {
   printer: string | null
   available: boolean
+  /** deutsche Begründung, wenn nicht verfügbar (z. B. „Drucker „X“ ist deaktiviert/offline“) */
+  message?: string
 }
 
 export interface PrintResult {
@@ -515,8 +527,11 @@ export interface EvaluationData {
   transferCents: Cents
   /** Summe der Personen, Stornos gegengerechnet */
   persons: number
-  products: Array<{ name: string; quantity: number; grossCents: Cents }>
+  /** `productId`: Produkt des Fests; null = freie Zusatzposition (steht am Ende) */
+  products: Array<{ name: string; quantity: number; grossCents: Cents; productId?: number | null }>
   taxRates: VatBreakdown[]
+  /** Steuersätze anzeigen: Fest ohne Steuerbefreiung oder es gibt Belege mit Steuerausweis */
+  showTaxRates?: boolean
   perDay: Array<{ date: IsoDate; invoiceCount: number; grossCents: Cents }>
   clubsWithoutInvoice: Club[]
 }

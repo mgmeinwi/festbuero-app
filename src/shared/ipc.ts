@@ -47,6 +47,11 @@ export interface FestbueroApi {
     /** Datei mit Standardprogramm öffnen */
     openPath(path: string): Promise<void>
     showItemInFolder(path: string): Promise<void>
+    /**
+     * Vorschlag für den Dokumentenordner: `<Dokumente>/Festbüro` (in Entwicklung/Tests unter dem
+     * App-Datenverzeichnis). Legt nichts an; `updateSettings({ documentsDir })` legt den Ordner bei Bedarf an.
+     */
+    getDefaultDocumentsDir(): Promise<string>
     /** ZIP mit Datenbank + Logos in `<Dokumentenordner>/Datensicherungen/` */
     createBackup(): Promise<{ path: string }>
     /** legt ein Beispiel-Fest mit Produkten, Vorlage und erfundenen Vereinen an */
@@ -91,8 +96,11 @@ export interface FestbueroApi {
     previewImport(festivalId: number, filePath: string): Promise<ClubImportPreview>
     /** ersetzt den importierten Vereinsstamm (nach Bestätigung im UI) */
     commitImport(festivalId: number, filePath: string): Promise<ClubImportResult>
-    /** Speichern-Dialog; schreibt eine Anmelde-Vorlage (.xlsx); null bei Abbruch */
-    exportTemplate(festivalId: number): Promise<string | null>
+    /**
+     * Speichern-Dialog; schreibt eine Anmelde-Vorlage (.xlsx); null bei Abbruch.
+     * `prefill: true` füllt die Vorlage mit den aktuellen Vereinen des Fests vor.
+     */
+    exportTemplate(festivalId: number, opts?: { prefill?: boolean }): Promise<string | null>
   }
 
   templates: {
@@ -111,8 +119,11 @@ export interface FestbueroApi {
   invoices: {
     /** Nummer, die die nächste Rechnung erhalten würde (nur Anzeige, keine Reservierung) */
     nextNumberPreview(festivalId: number): Promise<string>
-    /** Nummer vergeben (Transaktion) → PDF erzeugen → ablegen → drucken → Status setzen */
-    finalize(draft: InvoiceDraft): Promise<FinalizeResult>
+    /**
+     * Nummer vergeben (Transaktion) → PDF erzeugen → ablegen → drucken → Status setzen.
+     * `opts.printer` überschreibt den gespeicherten Standarddrucker.
+     */
+    finalize(draft: InvoiceDraft, opts?: { printer?: string }): Promise<FinalizeResult>
     list(festivalId: number): Promise<InvoiceListItem[]>
     /** holt fehlendes PDF automatisch nach */
     get(id: number): Promise<Invoice>
@@ -125,7 +136,7 @@ export interface FestbueroApi {
     /** ZIP mit allen PDFs; Speichern-Dialog; null bei Abbruch */
     exportZip(ids: number[]): Promise<string | null>
     /** Stornobeleg mit neuer Nummer erzeugen, ablegen, drucken; Original wird 'storniert' */
-    storno(id: number, reason: string): Promise<FinalizeResult>
+    storno(id: number, reason: string, opts?: { printer?: string }): Promise<FinalizeResult>
     /** Excel-Export der Rechnungsliste; null bei Abbruch */
     exportListExcel(festivalId: number, ids?: number[]): Promise<string | null>
   }
