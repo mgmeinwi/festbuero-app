@@ -1,12 +1,14 @@
 /**
- * SQL für Gründungsfeste (Row ↔ Domänentyp).
+ * SQL für Gründungsfeste (Row ↔ Domänentyp). Zuständig: Bereich „Fest-Einstellungen“.
  *
- * Basis-Version (Bereich „Basis“); wird vom Bereich „Fest-Einstellungen“ übernommen und erweitert.
- * Enthält vorerst auch die Anlage der Standard-Zahlungsarten und der Vorlagen-Zeile beim Anlegen
- * eines Fests (bis die Repositories `payment-methods.ts` / `templates.ts` existieren).
+ * Enthält zusätzlich die Anlage bzw. Kopie der Vorlagen-Zeile beim Anlegen/Kopieren eines Fests
+ * (direktes SQL, damit keine Abhängigkeit zum Repository des Bereichs „Vorlage“ entsteht).
+ * `insertPaymentMethodRow` wird aus Kompatibilitätsgründen aus `payment-methods.ts` weitergereicht.
  */
-import type { Festival, FestivalUpdateInput, PaymentKind, TemplateConfig } from '@shared/types'
+import type { Festival, FestivalUpdateInput, TemplateConfig } from '@shared/types'
 import { nowIso, type Db } from '../connection'
+
+export { insertPaymentMethodRow, type PaymentMethodInsertValues } from './payment-methods'
 
 interface FestivalRow {
   id: number
@@ -141,27 +143,24 @@ export function updateFestivalRow(
   db.prepare(`UPDATE festival SET ${sets.join(', ')} WHERE id = ?`).run(...params, id)
 }
 
-export interface PaymentMethodInsertValues {
-  kind: PaymentKind
-  label: string
-  text: string
-  dueDays: number
-  isDefault: boolean
-}
-
-export function insertPaymentMethodRow(db: Db, festivalId: number, v: PaymentMethodInsertValues): number {
-  const result = db
-    .prepare(
-      `INSERT INTO payment_method (festival_id, kind, label, text, due_days, is_default)
-       VALUES (?, ?, ?, ?, ?, ?)`
-    )
-    .run(festivalId, v.kind, v.label, v.text, v.dueDays, v.isDefault ? 1 : 0)
-  return Number(result.lastInsertRowid)
-}
-
 export function insertTemplateRow(db: Db, festivalId: number, config: TemplateConfig, logoFile: string | null): number {
   const result = db
     .prepare('INSERT INTO template (festival_id, config_json, logo_file, updated_at) VALUES (?, ?, ?, ?)')
     .run(festivalId, JSON.stringify(config), logoFile, nowIso())
   return Number(result.lastInsertRowid)
+}
+
+/**
+ * Kopiert die Vorlage (`config_json` + `logo_file`) eines Fests in ein anderes. Logos sind
+ * inhaltsadressiert und werden nie überschrieben – die Datei darf daher geteilt werden.
+ * Liefert false, wenn das Quellfest keine Vorlage hat.
+ */
+export function copyTemplateRow(db: Db, sourceFestivalId: number, targetFestivalId: number): boolean {
+  const result = db
+    .prepare(
+      `INSERT INTO template (festival_id, config_json, logo_file, updated_at)
+       SELECT ?, config_json, logo_file, ? FROM template WHERE festival_id = ?`
+    )
+    .run(targetFestivalId, nowIso(), sourceFestivalId)
+  return result.changes > 0
 }

@@ -1,15 +1,10 @@
 /**
- * IPC `paymentMethods.*`
- *
- * Zuständig: Bereich „Fest-Einstellungen“.
- * Noch nicht implementiert: list, update.
- * Nicht registrierte Kanäle erzeugen im Renderer die Meldung „Funktion noch nicht verfügbar: …“.
- *
- * Muster:
- *   import { handle } from './handle'
- *   handle('paymentMethods.list', (...args) => service.list(...args))
+ * IPC `paymentMethods.*` – Zuständig: Bereich „Fest-Einstellungen“.
  */
+import { listPaymentMethods, updatePaymentMethod } from '../services/payment-methods'
+import { handle } from './handle'
 
 export function register(): void {
-  // Handler werden vom Bereich „Fest-Einstellungen“ ergänzt.
+  handle('paymentMethods.list', (festivalId) => listPaymentMethods(festivalId))
+  handle('paymentMethods.update', (id, patch) => updatePaymentMethod(id, patch))
 }

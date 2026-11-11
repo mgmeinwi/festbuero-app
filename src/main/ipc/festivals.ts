@@ -1,10 +1,10 @@
 /**
- * IPC `festivals.*`
+ * IPC `festivals.*` – Zuständig: Bereich „Fest-Einstellungen“.
  *
- * Basis-Version (Bereich „Basis“): list, get, create, update.
- * Zuständig danach: Bereich „Fest-Einstellungen“ (ergänzt copy und Validierungen).
+ * Das Anwendungsmenü (Fest-Liste im Menü „Fest“) baut sich nach jedem erfolgreichen
+ * `festivals.*`-Aufruf außer list/get automatisch neu auf (`onHandled` in `src/main/menu.ts`).
  */
-import { createFestival, getFestival, listFestivals, updateFestival } from '../services/festivals'
+import { copyFestival, createFestival, getFestival, listFestivals, updateFestival } from '../services/festivals'
 import { handle } from './handle'
 
 export function register(): void {
@@ -12,5 +12,5 @@ export function register(): void {
   handle('festivals.get', (id) => getFestival(id))
   handle('festivals.create', (input) => createFestival(input))
   handle('festivals.update', (id, patch) => updateFestival(id, patch))
-  // festivals.copy → Bereich „Fest-Einstellungen“
+  handle('festivals.copy', (sourceId, input) => copyFestival(sourceId, input))
 }
