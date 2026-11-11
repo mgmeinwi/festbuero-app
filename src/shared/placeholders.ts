@@ -46,7 +46,8 @@ export const TEXT_FIELDS = [
   'Personen',
   'Zahlart',
   'Festname',
-  'Originalrechnung'
+  'Originalrechnung',
+  'Stornogrund'
 ] as const
 export type TextField = (typeof TEXT_FIELDS)[number]
 
@@ -104,6 +105,13 @@ export const PLACEHOLDERS: readonly PlaceholderDefinition[] = [
     label: 'Originalrechnung (nur Storno)',
     group: 'Rechnung',
     example: '2025-080'
+  },
+  {
+    token: '{Stornogrund}',
+    field: 'Stornogrund',
+    label: 'Grund der Stornierung (nur Storno)',
+    group: 'Rechnung',
+    example: 'Falsche Personenzahl'
   },
   ...DATE_FIELDS.flatMap(dateDefinitions),
   { token: '{Verein}', field: 'Verein', label: 'Verein', group: 'Kunde', example: 'Musterverein e.V.' },
@@ -167,7 +175,8 @@ export function buildPlaceholderValues(data: InvoiceRenderData): PlaceholderValu
       Personen: data.persons === null || data.persons === undefined ? '' : String(data.persons),
       Zahlart: data.paymentLabel ?? '',
       Festname: data.festivalName ?? '',
-      Originalrechnung: data.originalNumber ?? ''
+      Originalrechnung: data.originalNumber ?? '',
+      Stornogrund: data.stornoReason ?? ''
     },
     dates: {
       Rechnungsdatum: data.invoiceDate,
