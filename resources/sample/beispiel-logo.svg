@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" width="200" height="240">
+  <title>Muster-Logo</title>
+  <path d="M100 8 L188 36 V112 C188 170 148 206 100 232 C52 206 12 170 12 112 V36 Z" fill="#2f6f4f" stroke="#1d3b2c" stroke-width="6"/>
+  <path d="M100 26 L170 48 V112 C170 160 138 190 100 212 C62 190 30 160 30 112 V48 Z" fill="#ffffff"/>
+  <text x="100" y="104" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#2f6f4f">MUSTER</text>
+  <text x="100" y="146" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" fill="#1d3b2c">VEREIN</text>
+  <text x="100" y="182" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1d3b2c">e.V.</text>
+</svg>

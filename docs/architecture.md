@@ -66,7 +66,7 @@ tests/
   e2e/                        Playwright-Tests + Helfer (launchApp mit temp userData)
   fixtures/                   erfundene Testdateien (z. B. vereine-beispiel.xlsx)
 resources/
-  sample/beispiel-logo.jpg    Vereinswappen für die Beispielvorlage
+  sample/beispiel-logo.svg    neutrales Muster-Logo für Beispielvorlage/Beispiel-Fest
   win/                        SumatraPDF (wird per Skript geladen, nicht eingecheckt)
 ```
 
