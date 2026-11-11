@@ -1,0 +1,37 @@
+# Minimale electron-builder-Konfiguration (Bereich „Basis“).
+# Die vollständige Konfiguration (Icons, Universal-DMG, NSIS, SumatraPDF, Signierung)
+# ergänzt der Bereich „Setup & Auslieferung“.
+appId: de.festbuero.app
+# WICHTIG: ASCII-Produktname für Bundle/Executable/Helper-Apps. Mit „ü“ legt electron-builder unter
+# macOS Executable und Helper NFD-kodiert an, CFBundleName aber NFC → die paketierte App stürzt
+# beim Start ab (SIGTRAP, geprüft mit Electron 45 / electron-builder 26). Der sichtbare Name bleibt
+# „Festbüro“ (package.json#productName zur Laufzeit, CFBundleDisplayName, Verknüpfungen).
+productName: Festbuero
+executableName: Festbuero
+directories:
+  output: release
+  buildResources: build
+files:
+  - package.json
+  - out/main/**
+  - out/preload/**
+  - out/renderer/**
+asarUnpack:
+  # natives Modul muss außerhalb des asar-Archivs liegen
+  - "**/node_modules/better-sqlite3/**"
+  - "**/*.node"
+npmRebuild: true
+mac:
+  category: public.app-category.business
+  extendInfo:
+    CFBundleDisplayName: Festbüro
+  target:
+    - target: dmg
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  shortcutName: Festbüro
+  uninstallDisplayName: Festbüro

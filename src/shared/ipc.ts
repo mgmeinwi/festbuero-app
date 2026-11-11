@@ -51,6 +51,10 @@ export interface FestbueroApi {
     createBackup(): Promise<{ path: string }>
     /** legt ein Beispiel-Fest mit Produkten, Vorlage und erfundenen Vereinen an */
     createSampleFestival(): Promise<Festival>
+    /** Renderer-Zustand für das Anwendungsmenü (aktiviert/deaktiviert Einträge, baut das Menü neu) */
+    updateMenuState(state: MenuState): Promise<void>
+    /** öffnet das Anwendungsmenü als Popup (Windows/Linux: Menü-Button in der Kopfleiste) */
+    showAppMenu(pos?: { x: number; y: number }): Promise<void>
   }
 
   festivals: {
@@ -146,11 +150,54 @@ export type ApiChannel = {
   [N in ApiNamespace]: `${N & string}.${keyof FestbueroApi[N] & string}`
 }[ApiNamespace]
 
+/**
+ * Aktionen aus dem Anwendungsmenü / Tastenkürzeln, die der Renderer ausführt
+ * (`useMenuAction(action, handler)` in `@/lib/menu-actions`). Navigation, Theme-, Drucker- und
+ * Fest-Wechsel erledigt der Main-Prozess selbst.
+ */
+export type MenuAction =
+  | 'invoice.new'
+  | 'invoice.newEinzel'
+  | 'invoice.finalize'
+  | 'invoice.reprintLast'
+  | 'invoice.openLastPdf'
+  | 'clubs.import'
+  | 'clubs.exportTemplate'
+  | 'invoices.exportListExcel'
+  | 'invoices.exportZip'
+  | 'evaluation.exportExcel'
+  | 'app.openDocumentsDir'
+  | 'app.backup'
+  | 'search.focus'
+  | 'festival.new'
+  | 'festival.copy'
+  | 'preview.toggle'
+  | 'nav.toggle'
+  | 'printing.testPage'
+  | 'help.shortcuts'
+  | 'setup.open'
+
+/** Zustand des Renderers, der das Menü beeinflusst. */
+export interface MenuState {
+  /** aktuelle Route, z. B. "/festbuero" */
+  route: string
+  /** Maske: Rechnung ist abschließbar (aktiviert „Abschließen & drucken“, Strg/⌘+Enter) */
+  canFinalize: boolean
+  /** zuletzt abgeschlossene Rechnung (für „erneut drucken“ / „PDF öffnen“) */
+  lastInvoiceId: number | null
+}
+
 /** Events vom Main-Prozess an den Renderer (über `window.festbuero.on`). */
 export interface MainEvents {
   /** Druckerliste/-status hat sich geändert */
   'printing.statusChanged': PrinterStatus
   /** Menü/Shortcut-Aktionen aus dem Main-Prozess */
   'app.navigate': { path: string }
+  /** Menüaktion, die der Renderer ausführen soll */
+  'menu.action': { action: MenuAction }
+  /** App-Einstellungen wurden im Main geändert (z. B. über das Menü: Fest, Drucker, Theme) */
+  'app.settingsChanged': AppSettings
+  /** Fensterzustand (Vollbild → keine Ampel, linkes Padding der Kopfleiste entfällt) */
+  'window.state': { fullscreen: boolean }
 }
 export type MainEventName = keyof MainEvents
