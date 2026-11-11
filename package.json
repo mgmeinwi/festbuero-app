@@ -18,6 +18,7 @@
     "test": "ELECTRON_RUN_AS_NODE=1 electron node_modules/vitest/vitest.mjs run",
     "test:watch": "ELECTRON_RUN_AS_NODE=1 electron node_modules/vitest/vitest.mjs",
     "test:e2e": "electron-vite build && playwright test",
+    "docs:screenshots": "FESTBUERO_OUT_DIR=out/docs electron-vite build && FESTBUERO_OUT_DIR=out/docs playwright test -c playwright.docs.config.ts",
     "icon": "node scripts/render-icon.mjs",
     "fetch:sumatra": "node scripts/fetch-sumatra.mjs",
     "dist:mac": "electron-vite build && electron-builder --mac --universal --publish never",

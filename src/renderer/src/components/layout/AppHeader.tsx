@@ -79,7 +79,8 @@ export function AppHeader({ onToggleNav }: AppHeaderProps) {
       </div>
 
       <div className="flex shrink-0 items-center gap-1">
-        {info?.printDryRun ? (
+        {/* Doku-Modus (README-Screenshots): Entwicklungshinweis ausblenden */}
+        {info?.printDryRun && !info.docsScreenshots ? (
           <Badge
             variant="outline"
             className="hidden h-7 text-muted-foreground xl:inline-flex"

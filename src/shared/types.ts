@@ -548,4 +548,6 @@ export interface AppInfo {
   isPackaged: boolean
   /** true = Druckaufträge werden nur simuliert */
   printDryRun: boolean
+  /** Doku-Modus für README-Screenshots (FESTBUERO_DOCS_SCREENSHOTS=1, nur in E2E): Entwicklungshinweise ausblenden */
+  docsScreenshots?: boolean
 }

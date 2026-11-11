@@ -22,7 +22,7 @@ import { getSampleRenderData } from '@shared/invoice-render/sample-data'
 import type { PrinterInfo, PrinterStatus, PrintResult, TemplateConfig } from '@shared/types'
 import { getDb, nowIso, type Db } from '../db/connection'
 import * as repo from '../db/repositories/invoices'
-import { getPrintDryRunLogPath, isE2E, isFakePrintFail, isPrintDryRun } from '../env'
+import { getPrintDryRunLogPath, isDocsScreenshots, isE2E, isFakePrintFail, isPrintDryRun } from '../env'
 import { isShuttingDown, registerShutdownHook } from '../lifecycle'
 import { emitToRenderer, getMainWindow, requireMainWindow } from '../window'
 import { ensureInvoicePdf, type PdfResult } from './filing'
@@ -58,7 +58,23 @@ function isDefaultPrinter(options: Record<string, unknown> | undefined): boolean
  */
 export const E2E_TEST_PRINTER = 'E2E-Testdrucker'
 
+/**
+ * Erfundene Drucker für die README-Screenshots (Doku-Modus, `isDocsScreenshots()` in env.ts).
+ * Der erste ist Standarddrucker. Sie ersetzen die Druckerliste komplett, damit keine Druckernamen
+ * des Rechners in den Bildern landen. Gedruckt wird in E2E ohnehin nur per Dry-Run.
+ */
+export const DOCS_DEMO_PRINTERS: readonly string[] = ['Festdrucker Kasse', 'Bürodrucker']
+
+function docsDemoPrinters(): Electron.PrinterInfo[] {
+  return DOCS_DEMO_PRINTERS.map((name, index) => {
+    const options = { 'printer-state': '3', 'printer-is-accepting-jobs': 'true', ...(index === 0 ? { 'printer-is-default': 'true' } : {}) }
+    return { name, displayName: name, description: '', status: 0, isDefault: index === 0, options } as unknown as Electron.PrinterInfo
+  })
+}
+
 function withE2ePrinter(printers: Electron.PrinterInfo[]): Electron.PrinterInfo[] {
+  // Doku-Modus: NUR die Demo-Drucker (statt der echten Drucker und des E2E-Testdruckers)
+  if (isDocsScreenshots()) return docsDemoPrinters()
   if (!isE2E() || printers.some((p) => p.name === E2E_TEST_PRINTER)) return printers
   const fake = { name: E2E_TEST_PRINTER, displayName: E2E_TEST_PRINTER, description: '', status: 0, isDefault: false, options: {} }
   return [...printers, fake as unknown as Electron.PrinterInfo]
@@ -278,6 +294,8 @@ export async function checkPrinter(
 ): Promise<PrinterCheck> {
   // Simulierter Testdrucker (nur unter Playwright): immer bereit, nie das System befragen.
   if (isE2E() && printer === E2E_TEST_PRINTER) return { state: 'ok' }
+  // Demo-Drucker des Doku-Modus: ebenso immer bereit
+  if (isDocsScreenshots() && DOCS_DEMO_PRINTERS.includes(printer)) return { state: 'ok' }
   const platform = deps.platform ?? process.platform
   const list = await (deps.listSystemPrinters ?? systemPrinters)()
   if (list) {
@@ -328,6 +346,9 @@ export async function printPdf(job: PrintJob, deps: PrintDeps = {}): Promise<Pri
     } catch (err) {
       console.error('[print] Dry-Run-Protokoll nicht schreibbar:', err)
     }
+    // Doku-Modus: ohne Dry-Run-Kennzeichen, damit der Erfolgsdialog im Screenshot wie im echten Betrieb
+    // aussieht („1 Kopie an … gesendet“ statt „Druck simuliert“). Gedruckt wurde trotzdem nichts.
+    if (isDocsScreenshots() && !fakeFail) return { ok: true, ...base }
     return fakeFail ? { ok: false, ...base, dryRun: true, error } : { ok: true, ...base, dryRun: true }
   }
 

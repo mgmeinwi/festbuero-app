@@ -1,25 +1,129 @@
 # Festbüro
 
+![Festbüro-Maske: Musterverein Beispielhausen gewählt, 45 Personen, Positionen ausgefüllt, Endbetrag 670,20 € und rechts die Rechnungsvorschau](docs/screenshots/01-festbuero-maske.png)
+
 Desktop-App für das Festbüro eines Gründungsfests: Rechnungen an Vereine und Einzelpersonen in Sekunden
 erstellen, als PDF ablegen und **ohne Druckdialog** drucken. Läuft komplett offline auf macOS und Windows –
 keine Cloud, keine Anmeldung.
 
 > Alle Namen, Adressen und Vereine in diesem Repository (Musterverein e.V., Beispiel-Fest) sind erfunden.
 
-## Funktionen
+## Funktionen im Überblick
 
-- **Festbüro-Maske**: Verein suchen (fehlertolerant), Personenzahl eintragen, Positionen sind vorbelegt
-  (pro Person / feste Anzahl, Schnellwahl 0 · 1× · 2×), Einzelrechnungen, Live-Vorschau als A4-Seite.
-  „Abschließen & drucken“ (⌘/Strg + Enter) vergibt die Nummer, legt das PDF ab und druckt sofort.
-- **Mehrere Gründungsfeste** in einer Installation, jeweils mit eigenen Produkten, Zahlungsarten,
-  Vereinen, Rechnungsvorlage und Nummernkreis (Präfix, Startnummer, Stellenzahl).
-- **Vereinsstamm per Excel-Import** mit Vorschau und Fehleranzeige, Anmelde-Vorlage zum Verschicken.
-- **Rechnungsvorlage** nach DIN 5008 mit Editor: Logo, Absender, Hinweistexte, Fußzeile, Platzhalter.
-- **Steuern**: Bruttopreise mit 7 %/19 % oder Steuerbefreiung (§ 19 UStG).
-- **Rechnungsliste** mit Suche, Filtern, Storno (neue Nummer, nichts wird gelöscht), PDF- und ZIP-Export.
-- **Auswertung** (Umsatz, Zahlarten, Produkte, Steuersätze, Vereine ohne Rechnung) mit Excel-Export.
-- **Ersteinrichtungs-Assistent**, **Datensicherung** als ZIP, **Testseite** für den Drucker,
-  heller und dunkler Modus, komplett per Tastatur bedienbar, auch im halben Bildschirm (ab 600 × 560).
+Alle Bilder zeigen das mitgelieferte **Beispiel-Fest** mit erfundenen Vereinen und Demo-Druckern.
+
+### Festbüro-Maske
+
+Das Herzstück für den Festtag (Bild ganz oben): Verein suchen, Personenzahl bestätigen, Mengen prüfen.
+Die Positionen sind schon vorbelegt (pro Person oder feste Anzahl, Schnellwahl 0 · 1× · 2×), von Hand
+geänderte Zeilen sind markiert. Rechts wächst die Rechnung als A4-Vorschau mit, der Endbetrag steht groß
+darunter. Gäste ohne Verein bekommen eine **Einzelrechnung**.
+
+Die Suche findet Vereine nach Name, Ansprechpartner, Ort oder Postleitzahl und verzeiht Tippfehler.
+Vereine, die schon eine Rechnung haben, sind als „bereits abgerechnet“ markiert.
+
+![Vereinssuche mit dem Tippfehler „Musterferein“: drei Treffer, einer davon als „bereits abgerechnet“ markiert](docs/screenshots/02-vereinssuche.png)
+
+### Abschließen & drucken
+
+Ein Klick auf **„Abschließen & drucken“** (oder ⌘/Strg + Enter) vergibt die nächste Rechnungsnummer, legt
+das PDF im Dokumentenordner ab und druckt sofort auf dem Festdrucker, ohne Druckdialog. Mit „Neue Rechnung“
+(Enter) geht es direkt mit dem nächsten Verein weiter.
+
+![Erfolgsdialog nach dem Abschließen: Rechnung BSP-011 über 670,20 €, zwei Exemplare an den Festdrucker gesendet, PDF abgelegt](docs/screenshots/03-abschluss-erfolg.png)
+
+### Rechnungsliste
+
+Alle Belege des Fests auf einen Blick: Suche nach Nummer oder Kunde, Filter nach Zeitraum, Zahlart und Status,
+Summe unten rechts. Rechnungen lassen sich erneut drucken, als PDF exportieren oder gesammelt als ZIP bzw.
+Excel-Liste speichern.
+
+![Rechnungsliste mit 13 Belegen, Status „abgeschlossen“, „storniert“ und „Storno“ sowie Gesamtsumme](docs/screenshots/04-rechnungsliste.png)
+
+Ein Klick auf die Nummer zeigt die Rechnung genau so, wie sie gedruckt wurde.
+
+![Vorschau-Dialog einer Rechnung an die Freiwillige Feuerwehr Musterhausen mit Logo, Anschrift und Positionen](docs/screenshots/06-rechnungsvorschau.png)
+
+### Storno statt Löschen
+
+Abgeschlossene Rechnungen bleiben unverändert. Ein Fehler wird per **Storno** korrigiert: Es entsteht ein
+Stornobeleg mit neuer Nummer und Grund, nichts wird gelöscht. Mit „Stornieren und neu erstellen“ öffnet sich
+die Maske gleich mit den alten Angaben.
+
+![Storno-Dialog für Rechnung BSP-010 mit dem Grund „Personenzahl korrigiert: 20 statt 22 Personen“](docs/screenshots/05-storno.png)
+
+### Auswertung
+
+Umsatz nach Stornos, Bar und Überweisung, abgerechnete Personen, Mengen pro Produkt und Umsatz pro Tag.
+Weiter unten folgen die Steuersätze und die **Vereine ohne Rechnung**. Alles lässt sich nach Excel exportieren.
+
+![Auswertung mit Kennzahlen, Umsatz und Menge pro Produkt sowie Umsatz pro Tag](docs/screenshots/07-auswertung.png)
+
+### Vereine und Excel-Import
+
+Jedes Fest hat seinen eigenen Vereinsstamm. Vereine lassen sich einzeln anlegen oder aus der Anmeldeliste
+importieren; eine Anmelde-Vorlage zum Verschicken erzeugt die App selbst.
+
+![Vereinsliste des Beispiel-Fests mit Ansprechpartnern, Personenzahlen und dem Hinweis „Rechnung vorhanden“](docs/screenshots/08-vereine.png)
+
+Vor dem Import zeigt eine Vorschau, wie viele Zeilen gültig sind und welche Zeilen warum übersprungen werden.
+
+![Import-Vorschau: 16 Zeilen, 15 gültig, 1 fehlerhaft (Zeile 18: Vereinsname fehlt)](docs/screenshots/09-excel-import.png)
+
+### Produkte
+
+Mehrere Gründungsfeste passen in eine Installation, jedes mit eigenen Produkten, Zahlarten, Vereinen,
+Vorlage und Rechnungsnummern. Produkte haben einen Bruttopreis mit 7 % oder 19 % MwSt (oder das Fest ist
+nach § 19 UStG steuerbefreit) und werden pro Person oder als feste Anzahl vorbelegt. Die Reihenfolge gilt
+auch in der Maske und auf der Rechnung.
+
+![Produktliste mit acht Produkten, MwSt-Satz, Vorbelegung und Bruttopreis](docs/screenshots/10-produkte.png)
+
+### Zahlarten
+
+Bar und Überweisung mit eigenem Zahlungstext und Zahlungsfrist. Platzhalter wie {Gesamtbetrag} oder
+{Fälligkeitsdatum} werden beim Abschließen ersetzt, die Vorschau zeigt das Ergebnis.
+
+![Zahlarten Bar und Überweisung mit Zahlungstext und Beispiel mit Musterdaten](docs/screenshots/11-zahlungsarten.png)
+
+### Rechnungsnummern
+
+Präfix, Startnummer und Stellenzahl sind frei wählbar. Die Nummern laufen lückenlos; sobald es Rechnungen
+gibt, ist die Startnummer gesperrt.
+
+![Nummernkreis mit nächster Rechnungsnummer BSP-014 und gesperrter Startnummer](docs/screenshots/12-nummernkreis.png)
+
+### Rechnungsvorlage
+
+Die Vorlage nach DIN 5008 wird Block für Block bearbeitet: Logo, Absender, Anschrift, Hinweistexte,
+Zahlungstext und Fußzeile. Die Vorschau rechts zeigt jede Änderung sofort, auch als Storno oder mit
+40 Positionen.
+
+![Vorlagen-Editor mit Blockliste, Bearbeitung der Hinweistexte und Live-Vorschau der Rechnung](docs/screenshots/13-vorlagen-editor.png)
+
+### Einrichtungsassistent
+
+Beim ersten Start führt ein Assistent durch Dokumentenordner, Drucker und das erste Gründungsfest. Zum
+Ausprobieren lässt sich auch ein Beispiel-Fest anlegen.
+
+![Einrichtungsassistent, Schritt 4 von 5: erstes Gründungsfest anlegen oder Beispiel-Fest wählen](docs/screenshots/14-einrichtungsassistent.png)
+
+### App-Einstellungen
+
+Dokumentenordner, Festdrucker mit Statusanzeige und **Testseite**, Darstellung und **Datensicherung** als
+ZIP-Datei. Diese Einstellungen gelten für den jeweiligen Rechner.
+
+![App-Einstellungen mit Dokumentenordner und Drucker „Festdrucker Kasse“ (verfügbar), Testseite drucken](docs/screenshots/15-app-einstellungen.png)
+
+### Dunkelmodus, kleines Fenster und Tastatur
+
+Hell oder dunkel, nach Wunsch oder automatisch wie das System. Die App ist komplett per Tastatur bedienbar
+und funktioniert auch im halben Bildschirm (ab 600 × 560 Pixel): Die Vorschau lässt sich dann einblenden,
+der Endbetrag bleibt immer sichtbar.
+
+![Festbüro-Maske im Dunkelmodus](docs/screenshots/16-dunkelmodus.png)
+
+<img src="docs/screenshots/17-splitscreen.png" alt="Festbüro-Maske im schmalen Fenster (halber Bildschirm): Positionen untereinander, Endbetrag und Abschließen-Knopf unten" width="420">
 
 ## Installation
 
@@ -122,12 +226,19 @@ FESTBUERO_USER_DATA="$PWD/.devdata/dev" npm run dev    # Entwicklung mit isolier
 | Typprüfung | `npm run typecheck` |
 | Unit-Tests (Vitest über Electrons Node) | `npm test` |
 | E2E-Tests (Playwright, baut vorher) | `npm run test:e2e` |
+| README-Screenshots neu erzeugen (macOS, baut vorher) | `npm run docs:screenshots` |
 | Produktionsbuild | `npm run build` |
 | App-Icon aus `build/icon.svg` neu rendern | `npm run icon` |
 | SumatraPDF laden und prüfen (Windows-Build) | `npm run fetch:sumatra` |
 | Installer macOS (universal .dmg) | `npm run dist:mac` |
 | Installer Windows (NSIS x64, lädt vorher SumatraPDF) | `npm run dist:win` |
 | beide Installer | `npm run dist` |
+
+**Screenshots:** `npm run docs:screenshots` baut die App nach `out/docs`, startet sie mit temporären Daten,
+legt das Beispiel-Fest mit Demo-Rechnungen an und schreibt die Bilder dieser README nach
+`docs/screenshots/` (Generator: `tests/docs/readme-screenshots.spec.ts`, läuft nicht bei `npm run test:e2e`
+mit). Im Doku-Modus (`FESTBUERO_DOCS_SCREENSHOTS=1`) zeigt die App nur erfundene Demo-Drucker und keine
+Entwicklungshinweise; gedruckt wird auch dabei nie. Die Bilder werden mit `sips` (macOS) auf 1600 px verkleinert.
 
 In Entwicklung wird **nie echt gedruckt** (Druck wird simuliert und in `<userData>/print-dry-run.log`
 protokolliert). Installer landen in `release/`. Zum lokalen Bauen ohne Zertifikat

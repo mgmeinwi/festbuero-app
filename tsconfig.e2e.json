@@ -19,7 +19,9 @@
   },
   "include": [
     "playwright.config.ts",
+    "playwright.docs.config.ts",
     "tests/e2e/**/*",
+    "tests/docs/**/*",
     "src/env.d.ts",
     "src/shared/**/*",
     "src/preload/types.ts",
