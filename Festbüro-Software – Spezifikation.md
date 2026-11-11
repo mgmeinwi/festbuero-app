@@ -257,6 +257,9 @@ Die App soll sich im Festbetrieb unter Zeitdruck schnell und fehlerarm bedienen 
 **UX-Grundsätze**
 
 - Großzügige Klickflächen, gut lesbare Schrift, heller und dunkler Modus.
+- Fensterknöpfe (macOS-Ampel bzw. Windows-Schließen/Minimieren/Maximieren) sind sauber in die App-Kopfleiste integriert, kein separater weißer System-Titelbalken.
+- Die wichtigsten Funktionen sind auch über die macOS-Menüleiste erreichbar (Ablage, Bearbeiten, Fest, Darstellung, Drucker, Fenster, Hilfe), unter Windows über einen Menü-Button in der Kopfleiste. Alle Einträge haben passende Kurzbefehle.
+- Responsive Oberfläche: Auch bei verkleinertem Fenster am Laptop und im Splitscreen (halber Bildschirm, bis mindestens 600 × 560) funktioniert alles problemlos, ohne horizontales Scrollen und ohne abgeschnittene Bedienelemente.
 - Komplett per Tastatur bedienbar: Suche, Auswahl, Mengen, Abschluss.
 - Jede Aktion gibt sichtbares Feedback (Toast-Meldungen). Destruktive Aktionen wie Import-Überschreiben und Storno fragen nach.
 - Ersteinrichtungs-Assistent beim ersten Start: Dokumentenordner wählen, Drucker wählen, erstes Gründungsfest anlegen.

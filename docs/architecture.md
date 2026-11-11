@@ -136,7 +136,27 @@ resources/
 | `/einstellungen` | App-Einstellungen (Dokumentenordner, Drucker, Testseite, Datensicherung, Theme, Beispieldaten) | Setup |
 | `/setup` | Ersteinrichtungs-Assistent | Setup |
 
-## 10. Dateizuständigkeiten (parallele Arbeit)
+## 10. Responsive Layout (verbindlich für alle Seiten)
+
+Die App muss auch bei verkleinertem Laptop-Fenster problemlos funktionieren, **auch im Splitscreen** (halber Bildschirm: auf Laptops typischerweise 640–760 px breit).
+
+- **Mindestfenster 600 × 560.** Bei keiner Größe ab 600 × 560 scrollt das ganze Fenster horizontal, und kein Bedienelement wird abgeschnitten. Lange Texte (Fest, Drucker, Vereine) werden gekürzt (`truncate`), der volle Text steht im Tooltip bzw. `title`.
+- **Breakpoints** (Tailwind-Standard): `xl` ≥ 1280 = volles Layout · `lg` 1024–1279 = kompakt · `md` 768–1023 = schmal · `< md` (600–767) = Splitscreen. Wo eine Komponente von ihrer eigenen Breite abhängt (Spalten, Panels), Container-Queries (`@container`) statt Fenster-Breakpoints verwenden.
+- **Splitscreen (< md):** Kopfleiste nur mit Icons bzw. sehr kompakt, Navigation hinter dem Menü-Button, Formulare einspaltig, Tabellen nur mit den wichtigsten Spalten.
+- **Höhe:** Bei 560 px muss alles bedienbar sein. Kopfleiste fix, Inhaltsbereiche scrollen intern. Wichtige Aktionsleisten (z. B. Endbetrag + „Abschließen & drucken“) bleiben sichtbar (sticky). Dialoge haben `max-h` mit internem Scroll.
+- **Shell:** Navigation ≥ xl mit Text, lg–xl kompakt (Icons + Tooltip), < lg hinter einem Menü-Button (Sheet). Kopfleiste < lg kompakt.
+- **Festbüro-Maske:** ≥ xl zwei Spalten (Eingaben | Vorschau), Vorschau einklappbar. Unter xl ist die Vorschau standardmäßig zu und öffnet sich per Button bzw. Kurzbefehl als Fenster (Sheet/Dialog), wie in der Spezifikation vorgesehen. Eingabespalte nie schmaler als nötig: Mengenfelder und Schnellwahl-Buttons bleiben in einer Zeile.
+- **Tabellen** (Rechnungen, Produkte, Vereine): Unwichtige Spalten werden bei kleiner Breite ausgeblendet, oder die Tabelle scrollt innerhalb ihres Containers. Zeilenaktionen bei kleiner Breite in einem „…“-Menü.
+- **Vorlagen-Editor:** ≥ xl drei Bereiche (Blockliste | Editor | Vorschau). Darunter Vorschau per Umschalter/Sheet, < lg Blockliste als Auswahl/Drawer.
+- **Prüfung:** Jede Seite wird bei 600 × 560 (min), 740 × 900 (split), 1280 × 800 (laptop) und 1440 × 900 (large) per Playwright-Screenshot geprüft (`setWindowSize`, `VIEWPORTS` in `tests/e2e/helpers.ts`), inklusive Check auf horizontalen Overflow.
+
+## 11. Fenster, Titelleiste & Menü
+
+- **Integrierte Titelleiste:** Kein separater System-Titelbalken. macOS: `titleBarStyle: 'hidden'`, Ampel mittig in der App-Kopfleiste (links Platz reserviert, im Vollbild nicht). Windows: `titleBarStyle: 'hidden'` + `titleBarOverlay`, native Fensterknöpfe rechts in der Kopfleiste, Farben folgen dem Theme. Leere Kopfleistenflächen sind Drag-Region, Bedienelemente `no-drag`.
+- **Menüleiste (macOS):** Festbüro · Ablage · Bearbeiten · Fest · Darstellung · Drucker · Fenster · Hilfe, mit den wichtigsten Funktionen und Kurzbefehlen (Aufbau: `src/main/menu.ts`). **Windows:** dasselbe Menü über einen Menü-Button (☰) links in der Kopfleiste, Kurzbefehle mit Strg.
+- **Menüaktionen:** Der Main-Prozess sendet `'menu.action'` an den Renderer. Seiten schließen ihre Aktionen mit `useMenuAction(action, handler)` an. Ist die passende Seite nicht offen, navigiert die Shell erst dorthin und stellt die Aktion dann zu. Der Renderer meldet seinen Zustand mit `app.updateMenuState(...)` (z. B. ob „Abschließen & drucken“ aktiv ist). Welche Aktion welcher Bereich anschließt, steht in `docs/dev-notes.md`.
+
+## 12. Dateizuständigkeiten (parallele Arbeit)
 
 Jeder Bereich bearbeitet nur seine Dateien. Gemeinsame Dateien (`src/shared/types.ts`, `src/shared/ipc.ts`) nur additiv. Die Vorlagen von Basis-Agent (Stubs) dürfen vom jeweils zuständigen Bereich ersetzt werden.
 
