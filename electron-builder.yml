@@ -1,6 +1,15 @@
-# Minimale electron-builder-Konfiguration (Bereich „Basis“).
-# Die vollständige Konfiguration (Icons, Universal-DMG, NSIS, SumatraPDF, Signierung)
-# ergänzt der Bereich „Setup & Auslieferung“.
+# electron-builder – Installer für macOS (.dmg, universal) und Windows (NSIS, x64).
+# Bereich „Setup & Auslieferung“. Befehle: npm run dist:mac · npm run dist:win · npm run dist
+#
+# Unsigniert bauen (Standard, z. B. lokal):  CSC_IDENTITY_AUTO_DISCOVERY=false npm run dist:mac
+# Signieren/Notarisieren später ausschließlich über Umgebungsvariablen (nichts davon ins Repository!):
+#   macOS:   CSC_LINK (Developer-ID-Zertifikat .p12, Pfad oder base64), CSC_KEY_PASSWORD,
+#            Notarisierung: APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID
+#            (alternativ APPLE_API_KEY, APPLE_API_KEY_ID, APPLE_API_ISSUER)
+#   Windows: WIN_CSC_LINK / WIN_CSC_KEY_PASSWORD (Code-Signing-Zertifikat) oder Azure Trusted Signing
+#            (win.azureSignOptions + AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET)
+# Details: README.md, Abschnitt „Code-Signierung“.
+
 appId: de.festbuero.app
 # WICHTIG: ASCII-Produktname für Bundle/Executable/Helper-Apps. Mit „ü“ legt electron-builder unter
 # macOS Executable und Helper NFD-kodiert an, CFBundleName aber NFC → die paketierte App stürzt
@@ -8,30 +17,129 @@ appId: de.festbuero.app
 # „Festbüro“ (package.json#productName zur Laufzeit, CFBundleDisplayName, Verknüpfungen).
 productName: Festbuero
 executableName: Festbuero
+copyright: Copyright © 2026 Festbüro-App
+
 directories:
   output: release
   buildResources: build
+
 files:
   - package.json
   - out/main/**
   - out/preload/**
   - out/renderer/**
+  - "!**/*.map"
+  # better-sqlite3 bringt N-API-Prebuilds für alle Plattformen mit (prebuilds/<plattform>-<arch>.node).
+  # Linux-Prebuilds, Quellcode und SQLite-Quellen werden nicht gebraucht. macOS- und Windows-Prebuilds
+  # bleiben in beiden Paketen (je ca. 2 MB) – bewusst so, denn:
+  # - das Makro ${platform} meint die Build-Maschine, nicht das Ziel (Cross-Build würde falsch filtern),
+  # - plattformspezifische `files`-Listen nur aus Negationen aktivieren das Standardmuster „**/*“
+  #   und packen den ganzen Projektordner ein.
+  - "!**/node_modules/better-sqlite3/prebuilds/{linux,linuxmusl}-*.node"
+  - "!**/node_modules/better-sqlite3/{deps,src,build}/**"
+  - "!**/node_modules/better-sqlite3/binding.gyp"
+
+asar: true
 asarUnpack:
   # natives Modul muss außerhalb des asar-Archivs liegen
   - "**/node_modules/better-sqlite3/**"
   - "**/*.node"
-npmRebuild: true
+
+# Kein Neubau nativer Module: better-sqlite3 enthält N-API-Prebuilds für macOS (x64/arm64) und
+# Windows (x64), die mit jeder Electron-Version funktionieren. Vorteile: kein Compiler nötig,
+# Windows-Build auch auf macOS möglich, node_modules wird beim Paketieren nicht verändert.
+npmRebuild: false
+nodeGypRebuild: false
+buildDependenciesFromSource: false
+
+# nur benötigte Chromium-Sprachdateien (spart Platz)
+electronLanguages:
+  - de
+  - en
+  - en-US
+  - en-GB
+
+# Muster-Logo für das Beispiel-Fest (beide Plattformen) → <resources>/sample/
+extraResources:
+  - from: resources/sample
+    to: sample
+    filter:
+      - "**/*"
+
+# macOS: unsignierte Builds ad-hoc signieren (sonst meldet macOS die App als „beschädigt“);
+# mit echtem Zertifikat ohne Wirkung. Siehe scripts/adhoc-sign-mac.cjs
+afterSign: scripts/adhoc-sign-mac.cjs
+
+# Kein automatisches Veröffentlichen (Releases legt der GitHub-Workflow als Entwurf an)
+publish: null
+
 mac:
   category: public.app-category.business
-  extendInfo:
-    CFBundleDisplayName: Festbüro
+  icon: build/icon.png
   target:
     - target: dmg
+      arch:
+        - universal
+  artifactName: Festbuero-${version}-mac-universal.${ext}
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  # Universal-Build: asar beider Architekturen zusammenführen. Die better-sqlite3-Prebuilds
+  # (darwin-x64.node, darwin-arm64.node) liegen identisch in beiden Builds – die Bibliothek wählt zur
+  # Laufzeit selbst die passende Datei, daher kein lipo nötig.
+  mergeASARs: true
+  x64ArchFiles: "**/node_modules/better-sqlite3/prebuilds/darwin-*.node"
+  extendInfo:
+    CFBundleDisplayName: Festbüro
+    CFBundleDevelopmentRegion: de
+    NSHumanReadableCopyright: Copyright © 2026 Festbüro-App
+
+dmg:
+  title: Festbüro ${version}
+  artifactName: Festbuero-${version}-mac-universal.${ext}
+  window:
+    width: 540
+    height: 380
+  contents:
+    - x: 140
+      y: 190
+      type: file
+    - x: 400
+      y: 190
+      type: link
+      path: /Applications
+
 win:
+  icon: build/icon.png
   target:
     - target: nsis
       arch:
         - x64
+  artifactName: Festbuero-${version}-win-x64-setup.${ext}
+  # SumatraPDF (stiller PDF-Druck) nur im Windows-Build → <resources>/win/ (siehe resources/win/README.md)
+  extraResources:
+    - from: resources/win
+      to: win
+      filter:
+        - SumatraPDF.exe
+        - COPYING-*.txt
+        - README.md
+
 nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
   shortcutName: Festbüro
   uninstallDisplayName: Festbüro
+  menuCategory: false
+  runAfterFinish: true
+  deleteAppDataOnUninstall: false
+  installerLanguages:
+    - de_DE
+  language: "1031"
+  multiLanguageInstaller: false
+  artifactName: Festbuero-${version}-win-x64-setup.${ext}

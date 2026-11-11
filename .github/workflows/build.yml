@@ -1,0 +1,111 @@
+# Installer bauen: macOS (.dmg, universal) und Windows (NSIS .exe, x64).
+#
+# Auslöser: Tag „v*“ (z. B. v1.0.0) oder manuell über „Run workflow“.
+# Bei Tags entsteht zusätzlich ein Release-ENTWURF mit beiden Installern (wird nicht automatisch veröffentlicht).
+# Gebaut wird unsigniert (CSC_IDENTITY_AUTO_DISCOVERY=false). Für eine spätere Signierung die Zertifikate
+# als Repository-Secrets hinterlegen und unten als Umgebungsvariablen durchreichen (siehe README.md,
+# Abschnitt „Code-Signierung“).
+name: Installer bauen
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "24"
+
+jobs:
+  check:
+    name: Typprüfung und Unit-Tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - name: Abhängigkeiten installieren
+        run: npm ci
+      - name: Typprüfung
+        run: npm run typecheck
+      - name: Unit-Tests
+        run: npm test
+
+  build:
+    name: Installer ${{ matrix.name }}
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS (universal)
+            os: macos-latest
+            script: dist:mac
+            artifact: festbuero-mac
+            files: |
+              release/*.dmg
+          - name: Windows (x64)
+            os: windows-latest
+            script: dist:win
+            artifact: festbuero-windows
+            files: |
+              release/*.exe
+    runs-on: ${{ matrix.os }}
+    env:
+      # unsigniert bauen; zum Signieren entfernen und Secrets setzen, z. B.:
+      #   CSC_LINK: ${{ secrets.MAC_CSC_LINK }}            CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+      #   APPLE_ID: ${{ secrets.APPLE_ID }}                APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      #   APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      #   WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}        WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - name: Abhängigkeiten installieren
+        run: npm ci
+      - name: Installer bauen (npm run ${{ matrix.script }})
+        run: npm run ${{ matrix.script }}
+      - name: Installer hochladen
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.files }}
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Release-Entwurf
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Installer herunterladen
+        uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Release-Entwurf anlegen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -la dist
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --draft \
+            --title "Festbüro $GITHUB_REF_NAME" \
+            --generate-notes \
+            --notes "Unsignierte Installer. Hinweise zur Installation (Gatekeeper/SmartScreen) stehen in der README."

@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!--
+    App-Icon „Festbüro“: Rechnung (Kassenbon) unter einer Wimpelkette, Euro-Plakette.
+    Eigenes Motiv, keine fremden Markenzeichen. Raster nach macOS-Vorgabe (824 × 824 auf 1024 × 1024).
+    PNG erzeugen: npm run icon  (scripts/render-icon.mjs → build/icon.png)
+  -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3f7be0"/>
+      <stop offset="1" stop-color="#1d4294"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eaf0f9"/>
+    </linearGradient>
+    <linearGradient id="badge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2cc285"/>
+      <stop offset="1" stop-color="#169a63"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#081a45" flood-opacity="0.38"/>
+    </filter>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#081a45" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Grundfläche -->
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#bg)"/>
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="4"/>
+
+  <!-- Wimpelkette -->
+  <path d="M150 300 Q512 420 874 300" fill="none" stroke="#e3ecfb" stroke-width="8" stroke-linecap="round"/>
+  <g filter="url(#soft)">
+    <path d="M-30 0 L30 0 L0 78 Z" fill="#f7b733" transform="translate(200.7 315.6) rotate(15.9)"/>
+    <path d="M-30 0 L30 0 L0 78 Z" fill="#ff6b6b" transform="translate(302.0 339.8) rotate(10.9)"/>
+    <path d="M-30 0 L30 0 L0 78 Z" fill="#ffffff" transform="translate(403.4 354.6) rotate(5.7)"/>
+    <path d="M-30 0 L30 0 L0 78 Z" fill="#3ecf8e" transform="translate(512.0 360.0) rotate(0.0)"/>
+    <path d="M-30 0 L30 0 L0 78 Z" fill="#f7b733" transform="translate(620.6 354.6) rotate(-5.7)"/>
+    <path d="M-30 0 L30 0 L0 78 Z" fill="#ff6b6b" transform="translate(722.0 339.8) rotate(-10.9)"/>
+    <path d="M-30 0 L30 0 L0 78 Z" fill="#ffffff" transform="translate(823.3 315.6) rotate(-15.9)"/>
+  </g>
+
+  <!-- Rechnung mit gezacktem Abriss -->
+  <path filter="url(#shadow)" fill="url(#paper)" d="M360 470 H664 Q682 470 682 488 V800
+    L665 828 L648 800 L631 828 L614 800 L597 828 L580 800 L563 828 L546 800 L529 828 L512 800
+    L495 828 L478 800 L461 828 L444 800 L427 828 L410 800 L393 828 L376 800 L359 828 L342 800
+    V488 Q342 470 360 470 Z"/>
+
+  <!-- Inhalt der Rechnung -->
+  <rect x="382" y="512" width="156" height="26" rx="13" fill="#1d4294"/>
+  <rect x="382" y="552" width="98" height="14" rx="7" fill="#b9c7de"/>
+  <g fill="#c9d5e8">
+    <rect x="382" y="602" width="150" height="16" rx="8"/>
+    <rect x="582" y="602" width="60" height="16" rx="8"/>
+    <rect x="382" y="644" width="122" height="16" rx="8"/>
+    <rect x="582" y="644" width="60" height="16" rx="8"/>
+    <rect x="382" y="686" width="138" height="16" rx="8"/>
+    <rect x="582" y="686" width="60" height="16" rx="8"/>
+  </g>
+  <path d="M382 734 H642" stroke="#9eb0cf" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 14"/>
+  <rect x="382" y="754" width="100" height="20" rx="10" fill="#1d4294"/>
+
+  <!-- Euro-Plakette -->
+  <g filter="url(#shadow)">
+    <circle cx="676" cy="760" r="92" fill="#ffffff"/>
+    <circle cx="676" cy="760" r="78" fill="url(#badge)"/>
+  </g>
+  <path fill="none" stroke="#ffffff" stroke-width="15" stroke-linecap="round"
+    d="M712 718 A44 44 0 1 0 712 802"/>
+  <path fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" d="M624 748 H682 M624 774 H676"/>
+</svg>

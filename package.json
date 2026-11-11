@@ -18,8 +18,11 @@
     "test": "ELECTRON_RUN_AS_NODE=1 electron node_modules/vitest/vitest.mjs run",
     "test:watch": "ELECTRON_RUN_AS_NODE=1 electron node_modules/vitest/vitest.mjs",
     "test:e2e": "electron-vite build && playwright test",
-    "dist:mac": "electron-vite build && electron-builder --mac",
-    "dist:win": "electron-vite build && electron-builder --win",
+    "icon": "node scripts/render-icon.mjs",
+    "fetch:sumatra": "node scripts/fetch-sumatra.mjs",
+    "dist:mac": "electron-vite build && electron-builder --mac --universal --publish never",
+    "dist:win": "npm run fetch:sumatra && electron-vite build && electron-builder --win --x64 --publish never",
+    "dist": "npm run dist:mac && npm run dist:win",
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
