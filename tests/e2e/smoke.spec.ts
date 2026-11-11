@@ -76,16 +76,17 @@ test.describe.serial('Smoke: App-Start, Navigation, Fest anlegen, Responsive', (
   })
 
   test('nicht implementierte Kanäle liefern eine verständliche Meldung', async () => {
+    // Bewusst ein Kanal, den es nie geben wird – echte Kanäle werden nach und nach implementiert.
     const message = await ctx.page.evaluate(async () => {
       try {
-        await (window.festbuero.invoke as unknown as (c: string) => Promise<unknown>)('products.list')
+        await (window.festbuero.invoke as unknown as (c: string) => Promise<unknown>)('diagnose.nieVorhanden')
         return 'kein Fehler'
       } catch (err) {
         return err instanceof Error ? err.message : String(err)
       }
     })
-    // Der Renderer-Proxy (lib/api.ts) macht daraus „Funktion noch nicht verfügbar: products.list“
-    expect(message).toContain("No handler registered for 'products.list'")
+    // Der Renderer-Proxy (lib/api.ts) macht daraus „Funktion noch nicht verfügbar: diagnose.nieVorhanden“
+    expect(message).toContain("No handler registered for 'diagnose.nieVorhanden'")
   })
 
   test('Kopfleiste und Navigation sind sichtbar, alle Routen erreichbar', async () => {
