@@ -1,0 +1,15 @@
+node_modules/
+out/
+dist/
+release/
+coverage/
+.vite/
+*.log
+.DS_Store
+test-results/
+playwright-report/
+.env
+.env.*
+# lokale Entwicklungs-/Testdaten
+.devdata/
+resources/win/SumatraPDF*.exe
