@@ -3,7 +3,8 @@
  *
  * Ablauf:
  * 1. Wartet auf die eingebetteten Schriften (`document.fonts.load` + `fonts.ready`) und das Logo
- *    (höchstens 3 s, danach geht es trotzdem weiter).
+ *    (höchstens 3 s, danach geht es trotzdem weiter) und darauf, dass das Dokument ein Layout hat
+ *    (iframe nicht mehr 0 × 0 bzw. verborgen – sonst wären alle Maße 0).
  * 2. Verteilt den Inhalt (`.flow`) auf A4-Seiten: Was nicht über die Fußzeile passt, kommt auf eine neue Seite.
  *    Die Positionstabelle bricht zeilenweise um (Kopfzeile wird wiederholt, die letzte Position bleibt beim
  *    Summenblock), Textblöcke (`.fb-split`) absatzweise. Die Fußzeile steht auf jeder Seite, ab 2 Seiten
@@ -182,7 +183,32 @@ export function buildLayoutScript(opts: LayoutScriptOptions): string {
     finish(pages);
   }
 
+  function hasLayout() {
+    var doc = document.getElementById('fb-doc');
+    var first = doc && doc.querySelector('.page');
+    return window.innerWidth > 0 && !!first && first.offsetHeight > 0;
+  }
+
+  // Ohne Layout (iframe direkt nach dem Einhängen noch 0 × 0 groß oder in einem verborgenen Container)
+  // liefern alle Maße 0 – der Umbruch legte dann jeden Block auf eine eigene Seite („Seite 1 von 5“,
+  // Umbruch direkt nach dem Betreff). Deshalb erst umbrechen, wenn das Dokument eine Größe hat.
+  function whenLaidOut(cb) {
+    var done = false;
+    function check() {
+      if (done || !hasLayout()) return false;
+      done = true;
+      window.removeEventListener('resize', check);
+      cb();
+      return true;
+    }
+    if (check()) return;
+    window.addEventListener('resize', check);
+    (function poll() { if (!check() && !done) setTimeout(poll, 50); })();
+  }
+
+  function start() { whenLaidOut(run); }
+
   var timeout = new Promise(function (resolve) { setTimeout(resolve, 3000); });
-  Promise.race([waitForAssets(), timeout]).then(run, run);
+  Promise.race([waitForAssets(), timeout]).then(start, start);
 })();`
 }

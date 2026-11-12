@@ -335,6 +335,39 @@ test.describe.serial('Vorlage: responsiv, Dunkelmodus, Seitenumbruch, PDF', () =
     await page.getByTestId('vorlage-preview-pane').locator('.overflow-y-auto').evaluate((el) => el.scrollTo(0, 0))
     await screenshot(page, 'vorlage-beispiel-large')
   })
+
+  /**
+   * Regression (paketierte App: „Seite 1 von 5“, Umbruch direkt nach dem Betreff): Lief das Layout-Skript,
+   * bevor das iframe ein Layout hatte (frisch eingehängt bzw. verborgen), waren alle Maße 0 und jeder
+   * Block landete auf einer eigenen Seite. Jetzt wartet das Skript, bis das Dokument eine Größe hat.
+   */
+  test('Seitenumbruch erst mit Layout: verborgenes iframe ergibt keine Einzelseiten', async () => {
+    const { page, app } = ctx
+    await setWindowSize(app, ...VIEWPORTS.large, page)
+    const html = await activeSrcDoc(page)
+    const result = await page.evaluate(async (srcdoc) => {
+      type FrameWindow = Window & { __FESTBUERO_RENDER_DONE__?: boolean; __FESTBUERO_PAGES__?: number }
+      const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+      const frame = document.createElement('iframe')
+      frame.style.cssText = 'display:none;position:fixed;left:0;top:0;width:794px;height:1123px;border:0;opacity:0;pointer-events:none'
+      frame.srcdoc = srcdoc
+      document.body.appendChild(frame)
+      try {
+        await new Promise((r) => frame.addEventListener('load', r, { once: true }))
+        await sleep(3500) // länger als die Schrift-Wartezeit (3 s) des Layout-Skripts
+        const win = frame.contentWindow as FrameWindow
+        const doneWhileHidden = win.__FESTBUERO_RENDER_DONE__ === true
+        frame.style.display = 'block'
+        for (let i = 0; i < 100 && win.__FESTBUERO_RENDER_DONE__ !== true; i++) await sleep(50)
+        return { doneWhileHidden, done: win.__FESTBUERO_RENDER_DONE__ === true, pages: win.__FESTBUERO_PAGES__ ?? null }
+      } finally {
+        frame.remove()
+      }
+    }, html)
+    expect(result.doneWhileHidden, 'ohne Layout darf nicht umgebrochen werden').toBe(false)
+    expect(result.done).toBe(true)
+    expect(result.pages).toBe(1)
+  })
 })
 
 test('Vorlage: keine neuen Absturzberichte', async () => {
