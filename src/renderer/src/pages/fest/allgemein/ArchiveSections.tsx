@@ -71,7 +71,7 @@ export function FestivalActionsSection({ festival, onCopy }: { festival: Festiva
           <p className="text-sm text-muted-foreground" id="archive-hint">
             {next
               ? 'Blendet das Fest in der Auswahl aus. Rechnungen und Daten bleiben erhalten und lassen sich jederzeit wiederherstellen.'
-              : 'Das einzige aktive Fest kann nicht archiviert werden. Lege zuerst ein weiteres Fest an oder kopiere dieses.'}
+              : 'Das einzige aktive Fest kann nicht archiviert werden. Legen Sie zuerst ein weiteres Fest an oder kopieren Sie dieses.'}
           </p>
         </div>
         <Button

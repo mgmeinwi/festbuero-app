@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { calculateTotals } from '@shared/tax'
 import type { VatBreakdown } from '@shared/types'
 import { openDatabase, type Db } from '../db/connection'
+import { listClubs } from '../db/repositories/clubs'
 import {
   buildClubReport,
   createClubResolver,
@@ -184,6 +185,38 @@ describe('Auswertung', () => {
     expect(resolve({ clubId: b, customer: verein(b, 'Ganz anderer Verein') })).toBeNull()
     // Einzelrechnungen nie
     expect(resolve({ clubId: null, customer: EINZEL })).toBeNull()
+  })
+
+  it('ordnet Vereinsnamen wie „bereits abgerechnet“ zu (Satzzeichen/Umlaute egal, gleich wie listClubs)', () => {
+    const festivalId = insertFestival(db)
+    const ff = insertClub(db, festivalId, { clubName: 'FF Musterdorf e.V.', registeredPersons: 30 })
+    const other = insertClub(db, festivalId, { clubName: 'Schützenverein Beispielstadt', registeredPersons: 12 })
+    const resolve = createClubResolver(loadEvaluationSource(festivalId, db).clubs)
+    // Re-Import: alte ID, Name mit anderer Schreibweise
+    expect(resolve({ clubId: 999, customer: verein(999, 'FF Musterdorf e. V.') })?.id).toBe(ff)
+    expect(resolve({ clubId: ff, customer: verein(ff, 'ff musterdorf e. v.') })?.id).toBe(ff)
+    expect(resolve({ clubId: null, customer: verein(null, 'Schuetzenverein Beispielstadt') })?.id).toBe(other)
+    expect(resolve({ clubId: null, customer: verein(null, 'FF Musterhausen e.V.') })).toBeNull()
+
+    // Rechnung mit „FF Musterdorf e. V.“ (Leerzeichen im e. V.) → in der Auswertung und im Vereinsstamm abgerechnet
+    insertInvoice(db, {
+      festivalId,
+      seq: 1,
+      customer: verein(999, 'FF Musterdorf e. V.', 30),
+      persons: 28,
+      paymentKind: 'bar',
+      invoiceDate: '2025-06-01',
+      lines: [{ productId: null, name: 'Festessen', priceCents: 1450, vatRate: 7, quantity: 28 }]
+    })
+    const e = getEvaluation(festivalId, db)
+    expect(e.clubsWithoutInvoice.map((c) => c.id)).toEqual([other])
+    const hasInvoice = new Map(listClubs(db, festivalId).map((c) => [c.id, c.hasInvoice]))
+    expect(hasInvoice.get(ff)).toBe(true)
+    expect(hasInvoice.get(other)).toBe(false)
+    // Vereinsbericht: Rechnung zählt beim Stammverein, keine zusätzliche Zeile „außerhalb des Stamms“
+    const rows = buildClubReport(loadEvaluationSource(festivalId, db))
+    expect(rows.find((r) => r.clubName === 'FF Musterdorf e.V.')).toMatchObject({ billedPersons: 28, invoiceCount: 1, inStamm: true })
+    expect(rows.filter((r) => !r.inStamm)).toHaveLength(0)
   })
 
   it('Vereinsbericht: angemeldet vs. abgerechnet, inklusive Vereinen außerhalb des Stamms', () => {

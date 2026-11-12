@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { Link, Outlet, useLocation } from 'react-router'
 import { cn } from '@/lib/utils'
 import { FEST_NAV, isNavItemActive } from './nav-items'
@@ -7,10 +7,17 @@ import { FEST_NAV, isNavItemActive } from './nav-items'
  * Rahmen für `/fest/*`: Tab-Leiste mit den Unterpunkten der Fest-Einstellungen
  * (Allgemein, Nummern, Produkte, Zahlarten, Vereine, Vorlage). Bei schmalen Fenstern scrollt
  * nur die Tab-Leiste horizontal (aktiver Tab wird eingeblendet), nie das Fenster.
+ * Beim Wechsel der Unterseite beginnt der Inhaltsbereich wieder oben (sonst bliebe die Scrollposition
+ * der vorherigen Seite stehen).
  */
 export function FestSettingsLayout() {
   const { pathname } = useLocation()
   const activeRef = useRef<HTMLAnchorElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    if (contentRef.current) contentRef.current.scrollTop = 0
+  }, [pathname])
 
   useEffect(() => {
     activeRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
@@ -47,7 +54,7 @@ export function FestSettingsLayout() {
           })}
         </ul>
       </nav>
-      <div className="min-h-0 flex-1 overflow-auto">
+      <div ref={contentRef} className="min-h-0 flex-1 overflow-auto" data-testid="fest-content">
         <Outlet />
       </div>
     </div>

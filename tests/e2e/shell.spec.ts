@@ -183,6 +183,58 @@ test.describe.serial('Shell: integrierte Titelleiste und Anwendungsmenü', () =>
     await expect(sidebar).toBeVisible()
   })
 
+  test('Seitenwechsel beginnt oben (Fest-Unterseiten und Hauptbereich)', async () => {
+    const { page } = ctx
+    const festival = (await invoke(page, 'festivals.list'))[0]!
+    for (let i = 1; i <= 12; i++) {
+      await invoke(page, 'clubs.create', festival.id, {
+        contactName: `Person ${i}`,
+        clubName: `Musterverein ${String(i).padStart(2, '0')}`,
+        street: 'Musterweg 1',
+        zip: '01234',
+        city: 'Musterstadt',
+        registeredPersons: 10 + i
+      })
+    }
+    await setWindowSize(ctx.app, ...VIEWPORTS.min, page)
+    const scrollTop = (testId: string) => page.getByTestId(testId).evaluate((el) => el.scrollTop)
+
+    // Fest-Einstellungen: Inhalt unter der Tab-Leiste (Vereine setzt die Position nicht selbst zurück)
+    await gotoRoute(page, '/fest/allgemein', { reload: true })
+    const content = page.getByTestId('fest-content')
+    await expect(content).toBeVisible()
+    await content.evaluate((el) => el.scrollTo(0, el.scrollHeight))
+    await expect.poll(() => scrollTop('fest-content')).toBeGreaterThan(0)
+    await page.getByTestId('fest-nav').getByRole('link', { name: 'Vereine' }).click()
+    await expect(page.getByText('Musterverein 12', { exact: true }).filter({ visible: true }).first()).toBeVisible()
+    expect(await content.evaluate((el) => el.scrollHeight > el.clientHeight), 'Vereine-Seite scrollbar').toBe(true)
+    await expect.poll(() => scrollTop('fest-content')).toBe(0)
+
+    // Hauptbereich: App-Einstellungen (weit unten) → Auswertung beginnt oben
+    await gotoRoute(page, '/einstellungen')
+    const main = page.getByTestId('main-content')
+    await main.evaluate((el) => el.scrollTo(0, el.scrollHeight))
+    await expect.poll(() => scrollTop('main-content')).toBeGreaterThan(0)
+    await gotoRoute(page, '/auswertung')
+    await expect(page.getByTestId('evaluation-kpis')).toBeVisible()
+    expect(await main.evaluate((el) => el.scrollHeight > el.clientHeight), 'Auswertung scrollbar').toBe(true)
+    await expect.poll(() => scrollTop('main-content')).toBe(0)
+    await setWindowSize(ctx.app, ...VIEWPORTS.laptop, page)
+  })
+
+  test('Dialoge überblenden nur per Animation (keine Transition auf Größen)', async () => {
+    const { page } = ctx
+    await gotoRoute(page, '/festbuero')
+    await page.getByTestId('festival-switcher').click()
+    await page.getByTestId('festival-new').click()
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+    const transition = await dialog.evaluate((el) => getComputedStyle(el).transitionProperty)
+    expect(transition).toBe('none')
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+  })
+
   for (const name of Object.keys(VIEWPORTS) as ViewportName[]) {
     test(`Titelleiste bei ${name}`, async () => {
       const [w, h] = VIEWPORTS[name]

@@ -10,11 +10,15 @@ interface PageHeaderProps {
   className?: string
 }
 
-/** Einheitlicher Seitenkopf (Titel, Beschreibung, Aktionen). */
+/**
+ * Einheitlicher Seitenkopf (Titel, Beschreibung, Aktionen). Die Aktionen bleiben rechts neben dem Titel,
+ * solange daneben mindestens 16rem für Titel/Beschreibung frei sind (lange Beschreibungen brechen dann um);
+ * erst bei schmalen Fenstern rutschen sie unter den Titel.
+ */
 export function PageHeader({ title, description, actions, className }: PageHeaderProps) {
   return (
     <div className={cn('flex flex-wrap items-start justify-between gap-x-4 gap-y-3', className)}>
-      <div className="min-w-0 space-y-1">
+      <div className="min-w-0 grow basis-64 space-y-1">
         <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl" title={title}>
           {title}
         </h1>

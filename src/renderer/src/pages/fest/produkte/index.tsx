@@ -223,12 +223,12 @@ function ProductsView({ festivalId }: { festivalId: number }) {
         </p>
       ) : products.length === 0 ? (
         <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed p-10 text-center" data-testid="products-empty">
-          <span className="flex size-12 items-center justify-center rounded-full bg-accent text-primary">
-            <Package className="size-6" aria-hidden />
+          <span className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Package className="size-7" aria-hidden />
           </span>
           <div className="space-y-1">
-            <p className="font-medium">Noch keine Produkte</p>
-            <p className="text-sm text-muted-foreground">Lege z. B. Festzeichen, Festessen oder die Festschrift an.</p>
+            <p className="text-base font-semibold">Noch keine Produkte</p>
+            <p className="text-sm text-muted-foreground">Legen Sie z. B. Festzeichen, Festessen oder die Festschrift an.</p>
           </div>
           <Button onClick={() => setDialog({ open: true, product: null })}>
             <Plus aria-hidden />

@@ -187,7 +187,7 @@ function InvoiceListPage({ festivalId, festivalName, copies }: { festivalId: num
 
   return (
     <div className="flex h-full min-h-0 flex-col" data-testid="invoices-page">
-      <div className="shrink-0 space-y-3 border-b px-4 pt-4 pb-3 sm:px-6 sm:pt-5">
+      <div className="shrink-0 space-y-3 border-b px-4 pt-4 pb-3 sm:px-6 sm:pt-6">
         <PageHeader
           title="Rechnungen"
           description={
@@ -200,12 +200,12 @@ function InvoiceListPage({ festivalId, festivalName, copies }: { festivalId: num
           actions={
             total > 0 ? (
               <>
-                <Button variant="outline" size="sm" onClick={() => void exportExcel()} title="Angezeigte Liste nach Excel exportieren">
+                <Button variant="outline" onClick={() => void exportExcel()} title="Angezeigte Liste nach Excel exportieren">
                   <FileSpreadsheet aria-hidden />
                   <span className="hidden sm:inline">Excel</span>
                   <span className="sr-only sm:hidden">Excel-Export</span>
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => void exportZip()} title="PDFs der angezeigten Belege als ZIP exportieren">
+                <Button variant="outline" onClick={() => void exportZip()} title="PDFs der angezeigten Belege als ZIP exportieren">
                   <FileArchive aria-hidden />
                   <span className="hidden sm:inline">ZIP</span>
                   <span className="sr-only sm:hidden">ZIP-Export</span>
@@ -343,7 +343,7 @@ function InvoiceListPage({ festivalId, festivalName, copies }: { festivalId: num
 function EmptyState({ onGo }: { onGo: () => void }) {
   return (
     <div className="flex flex-col items-center gap-4 px-6 py-16 text-center" data-testid="invoices-empty">
-      <span className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+      <span className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
         <ReceiptText className="size-7" aria-hidden />
       </span>
       <div className="max-w-sm space-y-1.5">

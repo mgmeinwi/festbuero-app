@@ -26,7 +26,7 @@ export function NewFestivalDialog({ open, onOpenChange, onCreated }: NewFestival
         <DialogHeader>
           <DialogTitle>Neues Gründungsfest anlegen</DialogTitle>
           <DialogDescription>
-            Produkte, Vereine und Vorlage richtest du danach unter „Fest-Einstellungen“ ein.
+            Produkte, Vereine und Vorlage richten Sie danach unter „Fest-Einstellungen“ ein.
           </DialogDescription>
         </DialogHeader>
         {open ? (

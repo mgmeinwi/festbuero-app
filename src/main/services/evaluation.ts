@@ -27,6 +27,7 @@ import type {
   VatRate
 } from '@shared/types'
 import { getDb, type Db } from '../db/connection'
+import { clubNameKey } from '../db/repositories/clubs'
 
 /* ------------------------------------------------------------------ */
 /* Quelldaten                                                          */
@@ -362,13 +363,22 @@ export function loadEvaluationSource(festivalId: number, db: Db = getDb()): Eval
 /* Vereine zuordnen                                                    */
 /* ------------------------------------------------------------------ */
 
-/** Vergleichsschlüssel für Vereinsnamen (Groß-/Kleinschreibung und Leerzeichen egal). */
+/** Vergleichsschlüssel für Bezeichnungen freier Positionen (Groß-/Kleinschreibung und Leerzeichen egal). */
 export function normalizeName(value: string | null | undefined): string {
   return (value ?? '').normalize('NFC').trim().replace(/\s+/g, ' ').toLocaleLowerCase('de')
 }
 
 /**
- * Ordnet einen Beleg einem Verein des aktuellen Stamms zu.
+ * Vergleichsschlüssel für Vereinsnamen – derselbe wie für `Club.hasInvoice` („bereits abgerechnet“ in der
+ * Maske) und die Import-Dubletten (`clubNameKey`): Groß-/Kleinschreibung, Leer- und Satzzeichen sowie
+ * Umlaut-Schreibweisen sind egal („FF Musterdorf e.V.“ = „FF Musterdorf e. V.“).
+ */
+function clubKey(value: string | null | undefined): string {
+  return clubNameKey(value ?? '')
+}
+
+/**
+ * Ordnet einen Beleg einem Verein des aktuellen Stamms zu (wie `invoicedClubIds` im Vereins-Repository).
  * Reihenfolge: gleiche ID und gleicher Vereinsname → gleicher Vereinsname → keine Zuordnung.
  * (Nach einem erneuten Import haben die Vereine neue IDs, und SQLite kann alte IDs neu vergeben –
  * deshalb zählt die ID nur zusammen mit dem Namen.)
@@ -378,16 +388,16 @@ export function createClubResolver(clubs: Club[]): (invoice: Pick<EvalInvoice, '
   const byName = new Map<string, Club>()
   for (const club of clubs) {
     byId.set(club.id, club)
-    const key = normalizeName(club.clubName)
+    const key = clubKey(club.clubName)
     if (key && !byName.has(key)) byName.set(key, club)
   }
   return (invoice) => {
     if (invoice.customer.kind !== 'verein') return null
-    const key = normalizeName(invoice.customer.clubName)
+    const key = clubKey(invoice.customer.clubName)
     const id = invoice.clubId ?? invoice.customer.clubId
     if (id !== null && id !== undefined) {
       const club = byId.get(id)
-      if (club && normalizeName(club.clubName) === key) return club
+      if (club && clubKey(club.clubName) === key) return club
     }
     return key ? (byName.get(key) ?? null) : null
   }
@@ -585,7 +595,7 @@ export function buildClubReport(source: Pick<EvaluationSource, 'invoices' | 'clu
     if (club) {
       row = stamm.get(club.id)!
     } else {
-      const key = normalizeName(inv.customer.clubName) || `id:${inv.clubId ?? inv.id}`
+      const key = clubKey(inv.customer.clubName) || `id:${inv.clubId ?? inv.id}`
       let other = others.get(key)
       if (!other) {
         other = {

@@ -150,7 +150,28 @@ Wichtig: Kein eigener `keydown`-Listener für Kürzel aus dem Menü (z. B. ⌘�
 ## Paketierung (Hinweis für „Setup & Auslieferung“)
 
 - Technischer Produktname in `electron-builder.yml` ist **`Festbuero`** (ASCII), Anzeigename bleibt „Festbüro“ (`package.json#productName` zur Laufzeit, `CFBundleDisplayName`, NSIS-Verknüpfung). Mit „ü“ im Bundle-/Executable-Namen legt electron-builder Executable und Helper-Apps NFD-kodiert an, `CFBundleName` aber NFC – die paketierte macOS-App beendet sich dann sofort mit Absturzbericht (SIGTRAP). Mit ASCII-Namen startet und beendet sie sauber (geprüft mit `electron-builder --mac --dir`).
-- Zum lokalen Prüfen ohne Signatur: `CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac --dir` (Ausgabe `release/`, in `.gitignore`).
+- Zum lokalen Prüfen ohne Signatur: `CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac --dir` (Ausgabe `release/`, in `.gitignore`). electron-builder paketiert `out/main`, `out/preload`, `out/renderer` – vorher `npm run build` **ohne** `FESTBUERO_OUT_DIR`, sonst landet ein alter Stand im Paket. Damit parallele Arbeit nicht gestört wird, am besten in einem APFS-Klon des Projekts bauen (`cp -c -R <projekt> <scratchpad>/klon`, dort `out/` und `release/` löschen, bauen, paketieren).
+- Paketierte App im Test starten: `_electron.launch({ executablePath: '<…>/Festbuero.app/Contents/MacOS/Festbuero', env: buildAppEnv(<temp>) })` – `buildAppEnv` setzt u. a. `FESTBUERO_PRINT_DRY_RUN=1`; ohne diese Variable druckt die paketierte App **echt**. Danach `app.close()` und Absturzberichte zählen.
+- `npmRebuild: false` (auch `nodeGypRebuild`/`buildDependenciesFromSource: false`): better-sqlite3 bringt N-API-Prebuilds für macOS (x64/arm64) und Windows (x64) mit, die mit jeder Electron-Version laufen. Kein Compiler nötig, `node_modules` bleibt beim Paketieren unverändert, und der **Windows-Cross-Build auf macOS funktioniert** (`npm run dist:win`, lädt vorher SumatraPDF).
+- macOS-Signatur: Hook `afterSign: scripts/adhoc-sign-mac.cjs` signiert unsignierte Builds ad-hoc (`codesign --sign -`), sonst meldet macOS die App nach dem Download als „beschädigt“. Mit echtem Zertifikat (`CSC_LINK` …) tut der Hook nichts.
+
+## PDF-Erzeugung (Schnittstelle)
+
+Vorschau und PDF nutzen dasselbe HTML (`src/shared/invoice-render/`):
+
+1. `renderInvoiceHtml({ data, template, logoDataUrl })` → vollständiges A4-HTML mit eingebetteten Schriften (data:-URLs) und einem Inline-Layout-Skript. Abgeschlossene Rechnungen: `data = invoiceToRenderData(invoice)` aus dem Snapshot (`services/pdf.ts#buildInvoiceHtml`).
+2. Main (`services/pdf.ts#renderHtmlToPdf`): HTML als **Datei** unter `<userData>/tmp/render-*.html` schreiben und in einem versteckten, sandboxed `BrowserWindow` (eigene Session ohne Netzwerk) per `loadFile` laden – keine riesige data:-URL.
+3. Auf `window.__FESTBUERO_RENDER_DONE__ === true` warten (Polling, Zeitlimit 20 s). Das Layout-Skript setzt es, nachdem Schriften/Logo geladen sind, das Dokument ein Layout hat und die Seiten verteilt sind (`window.__FESTBUERO_PAGES__` = Seitenzahl; im Vorschau-iframe zusätzlich `postMessage` `festbuero:rendered`).
+4. `webContents.printToPDF({ pageSize: 'A4', printBackground: true, margins: 0, preferCSSPageSize: true })`. Jobs laufen nacheinander (Queue), offene Fenster werden beim Beenden zerstört.
+
+- Das Layout-Skript bricht erst um, wenn das Dokument eine Größe hat: Ein frisch eingehängtes oder verborgenes iframe hat kein Layout (alle Maße 0) – früher landete dann jeder Block auf einer eigenen Seite („Seite 1 von 5“, Umbruch nach dem Betreff; Regressionstest in `tests/e2e/vorlage.spec.ts`).
+- `FESTBUERO_FAKE_PDF_FAIL=1` (gelesen in `services/pdf.ts#isFakePdfFail`, bei jedem Aufruf neu): PDF-Erzeugung schlägt simuliert fehl – für Tests „Rechnung bleibt gültig, PDF wird beim Öffnen nachgeholt“.
+
+## Druck in Tests und Grenzen der Fehlererkennung
+
+- **Simulierter `E2E-Testdrucker`**: Nur unter Playwright (`FESTBUERO_E2E=1`) hängt `services/printing.ts` ihn an die Druckerliste an; `checkPrinter` meldet ihn immer als bereit, gedruckt wird per Dry-Run. `prepareFestival()` setzt ihn als Standarddrucker; `prepareFestival(page, { printer: null })` = kein Drucker ausgewählt (Warnung in der Kopfleiste). Konstante: `E2E_TEST_PRINTER` in `tests/e2e/helpers.ts`.
+- Dry-Run-Protokoll: `<userData>/print-dry-run.log`, eine JSON-Zeile pro Auftrag (`file`, `printer`, `copies`, `ok`). `FESTBUERO_FAKE_PRINT_FAIL=1` lässt den Dry-Run fehlschlagen.
+- **Grenzen unter macOS:** `lp` übergibt den Auftrag nur an CUPS und kehrt sofort zurück. Erkannt werden: Drucker existiert nicht, Drucker in CUPS deaktiviert/gestoppt (`lpstat`, `printer-state`), `lp` selbst scheitert. **Nicht** (zuverlässig) erkannt werden ausgeschalteter oder nicht erreichbarer Drucker, Papiermangel und Papierstau – der Auftrag wartet dann in der CUPS-Warteschlange, die App meldet „gedruckt“. Deshalb vor dem Fest mit dem echten Festdrucker testen (Testseite in den Einstellungen).
 
 ## Renderer-Bausteine
 
@@ -165,7 +186,7 @@ Wichtig: Kein eigener `keydown`-Listener für Kürzel aus dem Menü (z. B. ⌘�
 
 - Neuen Handler im eigenen Modul `src/main/ipc/<ns>.ts` in `register()` eintragen: `handle('ns.methode', (...args) => service.fn(...args))` – Typen kommen aus dem Vertrag. `ipc/index.ts` muss nicht geändert werden.
 - DB: `getDb()` aus `src/main/db/connection.ts`; Tests: `openDatabase(':memory:')` (migriert) und Services mit `db`-Parameter.
-- Pfade/Schalter: `src/main/env.ts` (`getUserDataDir`, `getDbPath`, `getLogosDir`, `getPrintDryRunLogPath`, `isPrintDryRun`, `isFakePrintFail`, `isE2E`).
+- Pfade/Schalter: `src/main/env.ts` (`getUserDataDir`, `getDbPath`, `getLogosDir`, `getPrintDryRunLogPath`, `isPrintDryRun`, `isFakePrintFail`, `isE2E`); PDF-Fehlersimulation `FESTBUERO_FAKE_PDF_FAIL` in `services/pdf.ts`.
 - Hauptfenster/Events: `src/main/window.ts` (`getMainWindow`, `requireMainWindow`, `emitToRenderer`).
 - Dateien öffnen: `openPath`/`showItemInFolder` aus `src/main/services/shell.ts` (in E2E nur protokolliert).
 

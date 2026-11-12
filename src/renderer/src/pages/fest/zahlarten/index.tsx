@@ -9,6 +9,7 @@ import { Banknote, Landmark } from 'lucide-react'
 import { toast } from 'sonner'
 import { addDays, todayIso } from '@shared/dates'
 import { getSampleRenderData } from '@shared/invoice-render/sample-data'
+import { sanitizeRichHtml } from '@shared/invoice-render/sanitize'
 import { formatInvoiceNumber } from '@shared/numbering'
 import { replacePlaceholders } from '@shared/placeholders'
 import type { Festival, PaymentMethod, PaymentMethodUpdateInput } from '@shared/types'
@@ -23,7 +24,6 @@ import { useActiveFestival } from '@/hooks/use-active-festival'
 import { api } from '@/lib/api'
 import { cn, errorMessage } from '@/lib/utils'
 import { FEST_PAGE_CLASS, FieldMessage, parseIntegerInput, SaveBar, ScrollToTopOnMount, useSaveShortcut } from '../allgemein/form-kit'
-import { sanitizeHtml } from './sanitize-html'
 
 const KIND_INFO = {
   bar: { title: 'Bar', icon: Banknote, hint: 'Barzahlung im Festbüro' },
@@ -221,7 +221,8 @@ function PaymentMethodCard({
       paymentText: draft.text,
       taxExempt: festival.taxExempt
     })
-    return sanitizeHtml(replacePlaceholders(draft.text, data, { html: true }))
+    // wie in der Rechnung (invoice-render: richContent): erst bereinigen, dann Platzhalter (HTML-escaped) einsetzen
+    return replacePlaceholders(sanitizeRichHtml(draft.text), data, { html: true })
   }, [draft.text, dueDays, displayName, festival, method.kind, method.dueDays])
 
   const ids = {
@@ -319,7 +320,7 @@ function PaymentMethodCard({
           {example ? (
             <div
               className="text-sm leading-relaxed break-words [&_p]:min-h-[1lh] [&_strong]:font-semibold"
-              // bereinigtes HTML (sanitizeHtml): nur einfache Textformatierung
+              // bereinigtes HTML (sanitizeRichHtml wie in der Rechnung): nur einfache Textformatierung
               dangerouslySetInnerHTML={{ __html: example }}
             />
           ) : (

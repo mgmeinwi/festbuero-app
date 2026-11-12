@@ -325,7 +325,7 @@ function EmptyState({ onImport, onExport, onCreate }: { onImport: () => void; on
         <Users className="size-7" aria-hidden />
       </div>
       <div className="max-w-lg space-y-2">
-        <h2 className="text-lg font-semibold">Noch keine Vereine</h2>
+        <h2 className="text-base font-semibold">Noch keine Vereine</h2>
         <p className="text-sm text-muted-foreground">
           Importieren Sie die Anmeldeliste als Excel-Datei (.xlsx). Erkannt werden die Spalten Name, Verein, Straße, PLZ,
           Ort und ang. Personen – auch wenn weitere Spalten dabei sind.
@@ -336,11 +336,11 @@ function EmptyState({ onImport, onExport, onCreate }: { onImport: () => void; on
         </p>
       </div>
       <div className="flex flex-wrap justify-center gap-2">
-        <Button size="lg" onClick={onImport}>
+        <Button onClick={onImport}>
           <FileUp aria-hidden />
           Aus Excel importieren
         </Button>
-        <Button size="lg" variant="outline" onClick={onExport}>
+        <Button variant="outline" onClick={onExport}>
           <FileDown aria-hidden />
           Anmelde-Vorlage exportieren
         </Button>

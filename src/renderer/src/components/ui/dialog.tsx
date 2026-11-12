@@ -45,8 +45,11 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
+        // Ein-/Ausblenden nur per Animation (Opacity/Scale). `transition-none`: `duration-200` allein würde
+        // ALLE Eigenschaften überblenden (Standard transition-property: all) – auch max-height beim Größenwechsel;
+        // in verdeckten Fenstern blieb das hängen und das Overlay fing Klicks ab.
         className={cn(
-          'fixed top-[50%] left-[50%] z-50 grid max-h-[calc(100vh-6rem)] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto rounded-xl border bg-background p-6 shadow-lg duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-lg',
+          'fixed top-[50%] left-[50%] z-50 grid max-h-[calc(100vh-6rem)] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto rounded-xl border bg-background p-6 shadow-lg transition-none duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-lg',
           className
         )}
         {...props}

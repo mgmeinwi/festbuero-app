@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router'
 import { ReceiptText } from 'lucide-react'
 import { toast } from 'sonner'
@@ -60,6 +60,12 @@ export function AppShell() {
     setNavOpen(false)
   }, [pathname])
 
+  // Neue Seite beginnt oben (der Inhaltsbereich behielte sonst die Scrollposition der vorherigen Seite)
+  const mainRef = useRef<HTMLElement>(null)
+  useLayoutEffect(() => {
+    if (mainRef.current) mainRef.current.scrollTop = 0
+  }, [pathname])
+
   const toggleNav = useCallback(() => {
     if (isLg) {
       setSidebarHidden((hidden) => {
@@ -101,7 +107,7 @@ export function AppShell() {
       <AppHeader onToggleNav={toggleNav} />
       <div className="flex min-h-0 flex-1">
         <Sidebar hidden={sidebarHidden} />
-        <main id="main-content" data-testid="main-content" className="min-h-0 min-w-0 flex-1 overflow-auto">
+        <main ref={mainRef} id="main-content" data-testid="main-content" className="min-h-0 min-w-0 flex-1 overflow-auto">
           <Outlet />
         </main>
       </div>
