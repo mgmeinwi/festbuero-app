@@ -308,6 +308,84 @@ test.describe.serial('App-Einstellungen', () => {
     await applyTheme(ctx, 'light')
   })
 
+  test('Updates: in Tests abgeschaltet, Schalter, Menü und alle Zustände der Anzeige', async () => {
+    const card = ctx.page.getByTestId('settings-updates')
+    const status = await invoke(ctx.page, 'updates.getStatus')
+    // unpaketiert/E2E: nie Netzwerkzugriffe
+    expect(status.phase).toBe('unsupported')
+    await expect(card.getByTestId('settings-update-status')).toContainText('Updates gibt es nur in der installierten App.')
+    await expect(card.getByTestId('settings-update-check')).toBeDisabled()
+    expect((await invoke(ctx.page, 'updates.check')).phase).toBe('unsupported')
+
+    // Schalter „Beim Start nach Updates suchen“ wird gespeichert
+    const toggle = card.getByTestId('settings-auto-update')
+    await expect(toggle).toHaveAttribute('data-state', 'checked')
+    await toggle.click()
+    await expect.poll(async () => (await invoke(ctx.page, 'app.getSettings')).autoUpdateCheck).toBe(false)
+    await toggle.click()
+    await expect.poll(async () => (await invoke(ctx.page, 'app.getSettings')).autoUpdateCheck).toBe(true)
+
+    // Menü „Hilfe → Nach Updates suchen …“ führt zu den App-Einstellungen
+    await gotoRoute(ctx.page, '/festbuero')
+    await ctx.app.evaluate(({ Menu }) => Menu.getApplicationMenu()?.getMenuItemById('updates.check')?.click())
+    await expect.poll(() => ctx.page.evaluate(() => location.hash)).toBe('#/einstellungen')
+
+    // Anzeige der Zustände (Status-Event wie vom Updater, ohne Netzwerk)
+    const emit = (patch: Record<string, unknown>) =>
+      ctx.app.evaluate(({ BrowserWindow }, payload) => {
+        BrowserWindow.getAllWindows()[0]?.webContents.send('updates.statusChanged', payload)
+      }, { ...status, latestVersion: '9.9.0', releaseUrl: 'https://example.invalid/release', ...patch })
+
+    await emit({ phase: 'available', installMode: 'manual' })
+    await expect(card.getByText('Version 9.9.0 ist verfügbar.')).toBeVisible()
+    await expect(card.getByTestId('settings-update-download')).toBeVisible()
+    await card.scrollIntoViewIfNeeded()
+    for (const name of Object.keys(VIEWPORTS) as ViewportName[]) {
+      await setWindowSize(ctx.app, VIEWPORTS[name][0], VIEWPORTS[name][1], ctx.page)
+      await expectNoHorizontalOverflow(ctx.page)
+      await card.scrollIntoViewIfNeeded()
+      await screenshot(ctx.page, `setup-settings-updates-available-${name}`)
+    }
+    await setWindowSize(ctx.app, VIEWPORTS.min[0], VIEWPORTS.min[1], ctx.page)
+
+    await emit({ phase: 'downloading', progress: 42 })
+    await expect(card.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '42')
+    await card.scrollIntoViewIfNeeded()
+    await screenshot(ctx.page, 'setup-settings-updates-downloading-min')
+
+    await emit({ phase: 'ready', progress: 100, installMode: 'manual' })
+    await expect(card.getByTestId('settings-update-install')).toHaveText('Beenden und installieren')
+    await expectNoHorizontalOverflow(ctx.page)
+    await card.scrollIntoViewIfNeeded()
+    await screenshot(ctx.page, 'setup-settings-updates-ready-mac-min')
+    await card.getByTestId('settings-update-install').click()
+    const confirm = ctx.page.getByRole('alertdialog')
+    await expect(confirm).toContainText('Festbüro beenden und installieren?')
+    await screenshot(ctx.page, 'setup-settings-updates-confirm-min')
+    await confirm.getByRole('button', { name: 'Abbrechen' }).click()
+
+    await emit({ phase: 'ready', progress: 100, installMode: 'install' })
+    await expect(card.getByTestId('settings-update-install')).toHaveText('Jetzt neu starten')
+    await screenshot(ctx.page, 'setup-settings-updates-ready-win-min')
+
+    await emit({ phase: 'error', message: 'Keine Internetverbindung. Bitte später erneut versuchen.' })
+    await expect(card.getByRole('alert')).toContainText('Keine Internetverbindung')
+
+    // Hinweis auf anderen Seiten (einmal pro Version)
+    await gotoRoute(ctx.page, '/festbuero')
+    await emit({ phase: 'available', latestVersion: '9.9.1', installMode: 'manual' })
+    const toastItem = ctx.page.locator('[data-sonner-toast]').filter({ hasText: 'Festbüro 9.9.1 ist verfügbar' })
+    await expect(toastItem).toBeVisible()
+    await screenshot(ctx.page, 'setup-updates-toast-min')
+    await toastItem.getByRole('button', { name: 'Ansehen' }).click()
+    await expect.poll(() => ctx.page.evaluate(() => location.hash)).toBe('#/einstellungen')
+
+    // echten Zustand wiederherstellen
+    await emit({})
+    await dismissToasts(ctx.page)
+    await setWindowSize(ctx.app, VIEWPORTS.laptop[0], VIEWPORTS.laptop[1], ctx.page)
+  })
+
   test('Datensicherung erstellen (Button und Menü) → ZIP existiert', async () => {
     const settings = await invoke(ctx.page, 'app.getSettings')
     const backupDir = join(settings.documentsDir!, 'Datensicherungen')

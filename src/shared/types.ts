@@ -40,6 +40,8 @@ export interface AppSettings {
   lastFestivalId: number | null
   setupCompleted: boolean
   theme: ThemePreference
+  /** beim Start still nach einer neuen Version suchen (nur paketierte App, braucht Internet) */
+  autoUpdateCheck: boolean
 }
 
 /* ------------------------------------------------------------------ */
@@ -550,4 +552,37 @@ export interface AppInfo {
   printDryRun: boolean
   /** Doku-Modus für README-Screenshots (FESTBUERO_DOCS_SCREENSHOTS=1, nur in E2E): Entwicklungshinweise ausblenden */
   docsScreenshots?: boolean
+}
+
+/* ------------------------------------------------------------------ */
+/* Updates                                                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Phase des Updaters:
+ * - `unsupported`: keine Updates möglich (Entwicklung/Tests, Linux) – Grund in `message`
+ * - `idle`: noch nicht gesucht
+ * - `checking` → `upToDate` | `available` | `error`
+ * - `available` → `downloading` → `ready` (bzw. `error`)
+ */
+export type UpdatePhase = 'unsupported' | 'idle' | 'checking' | 'upToDate' | 'available' | 'downloading' | 'ready' | 'error'
+
+export interface UpdateStatus {
+  phase: UpdatePhase
+  currentVersion: string
+  /** neueste veröffentlichte Version (sobald bekannt) */
+  latestVersion: string | null
+  /**
+   * `install` (Windows): Update wird installiert und die App neu gestartet.
+   * `manual` (macOS ohne Apple-Signatur): DMG wird geladen und geöffnet, App von Hand ersetzen.
+   */
+  installMode: 'install' | 'manual'
+  /** Download-Fortschritt 0–100 (nur `downloading`, null = unbekannt) */
+  progress: number | null
+  /** Fehlermeldung (`error`) bzw. Grund (`unsupported`) */
+  message: string | null
+  /** Seite der neuesten Version (Änderungen, manueller Download) */
+  releaseUrl: string | null
+  /** Zeitpunkt der letzten erfolgreichen Suche */
+  checkedAt: IsoDateTime | null
 }

@@ -11,6 +11,7 @@ import { registerAllIpc } from './ipc'
 import { runShutdownHooks } from './lifecycle'
 import { handleShortcutInput, initMenu, refreshPrinters, scheduleMenuRebuild } from './menu'
 import { getSettings } from './services/settings'
+import { initUpdater } from './services/updater'
 import { emitToRenderer, getMainWindow, setMainWindow } from './window'
 
 /* ------------------------------------------------------------------ */
@@ -176,6 +177,7 @@ function onReady(): void {
   registerAllIpc()
   initMenu()
   createMainWindow()
+  initUpdater()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow()

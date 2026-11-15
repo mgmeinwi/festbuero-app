@@ -46,6 +46,9 @@ function MainEventsBridge() {
       queryClient.setQueryData(queryKeys.printerStatus, status)
       void queryClient.invalidateQueries({ queryKey: queryKeys.printers })
     })
+    const offUpdates = onMainEvent('updates.statusChanged', (status) => {
+      queryClient.setQueryData(queryKeys.updateStatus, status)
+    })
     const offWindow = onMainEvent('window.state', ({ fullscreen }) => {
       document.documentElement.dataset.fullscreen = fullscreen ? 'true' : 'false'
     })
@@ -55,6 +58,7 @@ function MainEventsBridge() {
       offSettings()
       offPrinters()
       offWindow()
+      offUpdates()
     }
   }, [])
   return null

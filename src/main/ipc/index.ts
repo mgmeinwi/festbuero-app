@@ -12,6 +12,7 @@ import { register as registerPaymentMethods } from './paymentMethods'
 import { register as registerPrinting } from './printing'
 import { register as registerProducts } from './products'
 import { register as registerTemplates } from './templates'
+import { register as registerUpdates } from './updates'
 
 export function registerAllIpc(): void {
   registerApp()
@@ -23,4 +24,5 @@ export function registerAllIpc(): void {
   registerInvoices()
   registerPrinting()
   registerEvaluation()
+  registerUpdates()
 }

@@ -13,5 +13,6 @@ export const queryKeys = {
   settings: ['settings'] as const,
   printers: ['printers'] as const,
   printerStatus: ['printerStatus'] as const,
-  appInfo: ['appInfo'] as const
+  appInfo: ['appInfo'] as const,
+  updateStatus: ['updateStatus'] as const
 } as const

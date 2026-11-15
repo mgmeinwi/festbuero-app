@@ -1,9 +1,11 @@
 # Installer bauen: macOS (.dmg, universal) und Windows (NSIS .exe, x64).
 #
 # Auslöser: Tag „v*“ (z. B. v1.0.0) oder manuell über „Run workflow“.
-# Bei Tags entsteht zusätzlich ein Release-ENTWURF mit beiden Installern (wird nicht automatisch veröffentlicht).
+# Bei Tags entsteht zusätzlich ein Release-ENTWURF mit beiden Installern und den Update-Dateien
+# (latest.yml, .blockmap) – wird nicht automatisch veröffentlicht. Erst nach „Publish release“ finden die
+# installierten Apps das Update (der Updater sieht nur veröffentlichte Releases).
 # Gebaut wird unsigniert (CSC_IDENTITY_AUTO_DISCOVERY=false). Für eine spätere Signierung die Zertifikate
-# als Repository-Secrets hinterlegen und unten als Umgebungsvariablen durchreichen (siehe README.md,
+# als Repository-Secrets hinterlegen und unten als Umgebungsvariablen durchreichen (siehe docs/development.md,
 # Abschnitt „Code-Signierung“).
 name: Installer bauen
 
@@ -57,8 +59,11 @@ jobs:
             os: windows-latest
             script: dist:win
             artifact: festbuero-windows
+            # latest.yml + .blockmap braucht der Windows-Updater (electron-updater)
             files: |
               release/*.exe
+              release/*.exe.blockmap
+              release/latest.yml
     runs-on: ${{ matrix.os }}
     env:
       # unsigniert bauen; zum Signieren entfernen und Secrets setzen, z. B.:
@@ -108,4 +113,4 @@ jobs:
             --draft \
             --title "Festbüro $GITHUB_REF_NAME" \
             --generate-notes \
-            --notes "Unsignierte Installer. Hinweise zur Installation (Gatekeeper/SmartScreen) stehen in der README."
+            --notes "Neu installieren: Installer unten bei „Assets“ herunterladen (Hinweise in der README). Bereits installierte Apps finden das Update unter App-Einstellungen → Updates."

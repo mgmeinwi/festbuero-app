@@ -11,7 +11,8 @@ export const DEFAULT_SETTINGS: Readonly<AppSettings> = Object.freeze({
   defaultPrinter: null,
   lastFestivalId: null,
   setupCompleted: false,
-  theme: 'system'
+  theme: 'system',
+  autoUpdateCheck: true
 })
 
 const settingsPatchSchema = z
@@ -20,7 +21,8 @@ const settingsPatchSchema = z
     defaultPrinter: z.string().trim().min(1).nullable(),
     lastFestivalId: z.number().int().positive().nullable(),
     setupCompleted: z.boolean(),
-    theme: z.enum(['system', 'light', 'dark'])
+    theme: z.enum(['system', 'light', 'dark']),
+    autoUpdateCheck: z.boolean()
   })
   .partial()
   .strict()

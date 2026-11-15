@@ -2,12 +2,13 @@
  * Route: /einstellungen – App-Einstellungen (gelten pro Rechner). Bereich „Setup & Auslieferung“.
  *
  * Dokumentenordner, Drucker + Testseite, Darstellung, Datensicherung, Beispiel-Fest,
- * Einrichtungsassistent, Info. Menüaktionen: `app.backup`, `printing.testPage`.
+ * Einrichtungsassistent, Updates, Info. Menüaktionen: `app.backup`, `printing.testPage`.
  */
 import { useState, type ReactNode } from 'react'
 import {
   Archive,
   CircleCheck,
+  CloudDownload,
   FlaskConical,
   FolderOpen,
   Info,
@@ -40,6 +41,7 @@ import { useMenuAction } from '@/lib/menu-actions'
 import { cn, errorMessage } from '@/lib/utils'
 import { FOLDER_APP, useCreateBackup, useCreateSampleFestival, usePrintTestPage } from './actions'
 import { PathText } from './PathText'
+import { UpdatesSection } from './UpdatesSection'
 
 /* ------------------------------------------------------------------ */
 /* Bausteine                                                           */
@@ -402,6 +404,11 @@ export default function EinstellungenPage() {
             </Button>
           }
         />
+      </SectionCard>
+
+      {/* Updates --------------------------------------------------------- */}
+      <SectionCard icon={<CloudDownload aria-hidden />} title="Updates" testId="settings-updates">
+        <UpdatesSection />
       </SectionCard>
 
       {/* Info ------------------------------------------------------------ */}

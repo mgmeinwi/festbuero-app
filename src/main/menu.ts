@@ -21,6 +21,7 @@ import { isShuttingDown, registerShutdownHook } from './lifecycle'
 import { listFestivals } from './services/festivals'
 import { getPrinterStatus, listPrinters } from './services/printing'
 import { openPath } from './services/shell'
+import { checkForUpdates } from './services/updater'
 import { emitToRenderer, getMainWindow } from './window'
 
 const isMac = process.platform === 'darwin'
@@ -375,7 +376,16 @@ export function buildMenuTemplate(): MenuItemConstructorOptions[] {
         label: `Datenordner im ${folderApp} anzeigen`,
         click: () => openFolder(getUserDataDir(), '/einstellungen')
       },
-      { id: 'setup.open', label: 'Einrichtungsassistent öffnen', click: () => navigate('/setup') }
+      { id: 'setup.open', label: 'Einrichtungsassistent öffnen', click: () => navigate('/setup') },
+      { type: 'separator' },
+      {
+        id: 'updates.check',
+        label: 'Nach Updates suchen …',
+        click: () => {
+          navigate('/einstellungen')
+          void checkForUpdates('manual')
+        }
+      }
     ]
   })
 

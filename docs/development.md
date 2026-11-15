@@ -74,6 +74,32 @@ scripts/        Hilfsskripte (Icon rendern, SumatraPDF laden)
    (Manuell geht es auch über „Run workflow“ – dann nur als Artefakte, ohne Release.)
 4. Den Entwurf auf GitHub prüfen und mit **„Publish release“** veröffentlichen.
 
+Erst nach dem Veröffentlichen finden die installierten Apps das Update (Entwürfe und Vorabversionen sieht
+der Updater nicht). Zum Release gehören neben den Installern `latest.yml` und
+`Festbuero-…-win-x64-setup.exe.blockmap` – beide braucht der Windows-Updater, sie nicht löschen.
+
+## Updater
+
+Dateien: `src/main/services/updater.ts` (Ablauf), `src/main/services/update-check.ts` (reine Hilfsfunktionen,
+unit-getestet), `src/main/ipc/updates.ts`, Oberfläche in `src/renderer/src/pages/einstellungen/UpdatesSection.tsx`
+und `src/renderer/src/components/layout/UpdateNotifier.tsx`. Quelle sind die GitHub-Releases
+(`publish` in `electron-builder.yml` und `UPDATE_REPO` in `update-check.ts` müssen übereinstimmen).
+
+- **Windows:** [`electron-updater`](https://www.electron.build/auto-update) liest `latest.yml` aus dem neuesten
+  Release, lädt den Installer (differenziell über die `.blockmap`, SHA-512 geprüft) und installiert auf
+  Knopfdruck still mit Neustart (`quitAndInstall(true, true)`) bzw. beim nächsten Beenden. Funktioniert
+  unsigniert; ist der Installer später signiert, prüft electron-updater zusätzlich den Herausgeber.
+- **macOS:** Squirrel.Mac (echtes Auto-Update) verlangt eine Developer-ID-Signatur. Bis dahin
+  halbautomatisch: GitHub-API (`/releases/latest`) abfragen, die DMG nach `<userData>/updates/` laden, mit
+  dem SHA-256 aus dem Release-Feld `digest` vergleichen, öffnen und die App beenden. Selbst geladene Dateien
+  tragen keine Quarantäne-Markierung, Gatekeeper fragt deshalb nicht erneut. Alte Downloads löscht die App
+  beim nächsten Start. Mit Signatur: `zip`-Ziel für macOS ergänzen (erzeugt `latest-mac.yml`) und den
+  macOS-Zweig in `updater.ts` auf `electron-updater` umstellen.
+- **Nie in Entwicklung oder Tests:** unpaketiert oder mit `FESTBUERO_E2E=1` ist der Updater abgeschaltet
+  (Status „unsupported“), es gibt keine Netzwerkzugriffe.
+- Die automatische Suche läuft 8 s nach dem Start einmal (`AppSettings.autoUpdateCheck`, Standard an) und
+  bleibt bei Fehlern still; nur die Suche auf Knopfdruck zeigt Fehler an.
+
 ## Code-Signierung
 
 Ohne Signatur warnen macOS (Gatekeeper) und Windows (SmartScreen) beim ersten Start (siehe

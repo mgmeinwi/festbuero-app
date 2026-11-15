@@ -34,7 +34,8 @@ import type {
   Product,
   ProductInput,
   Template,
-  TemplateConfig
+  TemplateConfig,
+  UpdateStatus
 } from './types'
 
 export interface FestbueroApi {
@@ -154,6 +155,19 @@ export interface FestbueroApi {
     /** Excel-Export mit allen Tabellenblättern; null bei Abbruch */
     exportExcel(festivalId: number): Promise<string | null>
   }
+
+  updates: {
+    getStatus(): Promise<UpdateStatus>
+    /** sucht sofort nach einer neuen Version (Fehler stehen danach im Status, kein Wurf) */
+    check(): Promise<UpdateStatus>
+    /** lädt die gefundene Version herunter (Fortschritt über `updates.statusChanged`) */
+    download(): Promise<UpdateStatus>
+    /**
+     * Windows: beendet die App, installiert das Update und startet neu.
+     * macOS: öffnet die geladene DMG und beendet die App (Ersetzen in „Programme“ von Hand).
+     */
+    install(): Promise<void>
+  }
 }
 
 export type ApiNamespace = keyof FestbueroApi
@@ -210,5 +224,7 @@ export interface MainEvents {
   'app.settingsChanged': AppSettings
   /** Fensterzustand (Vollbild → keine Ampel, linkes Padding der Kopfleiste entfällt) */
   'window.state': { fullscreen: boolean }
+  /** Zustand des Updaters hat sich geändert (Suche, Download-Fortschritt, bereit) */
+  'updates.statusChanged': UpdateStatus
 }
 export type MainEventName = keyof MainEvents

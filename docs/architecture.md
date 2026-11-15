@@ -37,12 +37,12 @@ src/
       repositories/*.ts       SQL pro Tabelle (Row <-> Domänentyp)
     services/*.ts             Fachlogik (festivals, products, clubs, club-import, templates,
                               finalize, pdf, filing, printing, storno, invoice-export, evaluation,
-                              evaluation-export, backup, sample-data, settings)
+                              evaluation-export, backup, sample-data, settings, updater, update-check)
     ipc/
       handle.ts               typsicherer handle('<ns>.<methode>', fn)
       index.ts                registerAllIpc() – importiert alle Module unten
       app.ts festivals.ts products.ts paymentMethods.ts clubs.ts templates.ts
-      invoices.ts printing.ts evaluation.ts
+      invoices.ts printing.ts evaluation.ts updates.ts
   preload/
     index.ts                  exponiert window.festbuero = { invoke(channel, ...args), on(event, cb) }
   renderer/
@@ -76,7 +76,7 @@ resources/
 - **Preload** exponiert nur generisch `window.festbuero.invoke(channel: string, ...args)` und `window.festbuero.on(event, cb) → unsubscribe`. Der Preload wird von Feature-Arbeit nie angefasst.
 - **Renderer** `lib/api.ts`: `export const api: FestbueroApi` als Proxy; `api.festivals.list()` → `invoke('festivals.list')`. Fehlermeldungen werden vom Electron-Präfix („Error invoking remote method …: Error: “) bereinigt.
 - **Main** `ipc/handle.ts`: `handle<C extends ApiChannel>(channel, fn)` mit aus dem Vertrag abgeleiteten Parameter-/Rückgabetypen. Jedes Feature-Modul exportiert `register()`; `ipc/index.ts` ruft alle auf.
-- Renderer-Datenhaltung über react-query. Query-Keys: `['festivals']`, `['products', festivalId]`, `['clubs', festivalId]`, `['paymentMethods', festivalId]`, `['template', festivalId]`, `['invoices', festivalId]`, `['evaluation', festivalId]`, `['settings']`, `['printers']`, `['printerStatus']`. Nach Mutationen passende Keys invalidieren.
+- Renderer-Datenhaltung über react-query. Query-Keys: `['festivals']`, `['products', festivalId]`, `['clubs', festivalId]`, `['paymentMethods', festivalId]`, `['template', festivalId]`, `['invoices', festivalId]`, `['evaluation', festivalId]`, `['settings']`, `['printers']`, `['printerStatus']`, `['updateStatus']`. Nach Mutationen passende Keys invalidieren.
 
 ## 4. Daten
 
@@ -169,4 +169,4 @@ Jeder Bereich bearbeitet nur seine Dateien. Gemeinsame Dateien (`src/shared/type
 | **Maske** | `src/shared/invoice-draft.ts`, `src/renderer/src/pages/festbuero/**` |
 | **Abschluss & Druck** | `src/main/services/{finalize,pdf,filing,printing,storno,invoice-export}.ts`, `src/main/db/repositories/invoices.ts`, `src/main/ipc/{invoices,printing}.ts` |
 | **Liste & Auswertung** | `src/renderer/src/pages/{rechnungen,auswertung}/**`, `src/main/services/{evaluation,evaluation-export}.ts`, `src/main/ipc/evaluation.ts` |
-| **Setup & Auslieferung** | `src/renderer/src/pages/{setup,einstellungen}/**`, `src/main/services/{backup,sample-data}.ts`, `src/main/ipc/app.ts` (Erweiterung), `electron-builder.yml`, `build/**`, `scripts/**`, `.github/workflows/**`, `README.md` |
+| **Setup & Auslieferung** | `src/renderer/src/pages/{setup,einstellungen}/**`, `src/main/services/{backup,sample-data,updater,update-check}.ts`, `src/main/ipc/app.ts` (Erweiterung), `src/main/ipc/updates.ts`, `src/renderer/src/components/layout/UpdateNotifier.tsx`, `src/renderer/src/hooks/use-updates.ts`, `electron-builder.yml`, `build/**`, `scripts/**`, `.github/workflows/**`, `README.md` |

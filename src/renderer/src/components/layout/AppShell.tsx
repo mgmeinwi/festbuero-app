@@ -12,6 +12,7 @@ import { AppHeader } from './AppHeader'
 import { NewFestivalDialog } from './NewFestivalDialog'
 import { ShortcutsDialog } from './ShortcutsDialog'
 import { NavList, Sidebar } from './Sidebar'
+import { UpdateNotifier } from './UpdateNotifier'
 
 const SIDEBAR_KEY = 'festbuero.sidebarHidden'
 
@@ -131,6 +132,7 @@ export function AppShell() {
 
       <NewFestivalDialog open={newFestivalOpen} onOpenChange={setNewFestivalOpen} />
       <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+      <UpdateNotifier />
     </div>
   )
 }

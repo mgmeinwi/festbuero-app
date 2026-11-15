@@ -63,11 +63,24 @@ xattr -dr com.apple.quarantine /Applications/Festbuero.app
    Benutzer, keine Administratorrechte nötig).
 4. Festbüro über die Verknüpfung **Festbüro** auf dem Desktop oder im Startmenü starten.
 
-### Neue Version installieren
+### Updates
 
-Zuerst eine [Datensicherung](#5-datensicherung) erstellen. Dann die neue Datei herunterladen und wie oben
-installieren – auf dem Mac die alte App im Ordner Programme ersetzen. Rechnungen, Vereine und Einstellungen
-bleiben dabei erhalten.
+Festbüro sucht beim Start automatisch nach einer neuen Version, sofern der Rechner online ist. Gibt es
+eine, erscheint unten rechts ein Hinweis. Von Hand geht es über **App-Einstellungen → Updates → Nach
+Updates suchen** oder das Menü **Hilfe → Nach Updates suchen …**. Installiert wird nie ohne Rückfrage.
+
+- **Windows:** **Herunterladen**, dann **Jetzt neu starten**. Festbüro installiert das Update und startet
+  von selbst neu. Wer nicht neu startet, bekommt das Update beim nächsten Beenden.
+- **Mac:** **Herunterladen**, dann **Beenden und installieren**. Festbüro schließt sich und öffnet das
+  Installationsfenster. Dort **Festbuero** auf **Programme** ziehen, **Ersetzen** wählen und Festbüro wieder
+  starten.
+
+Rechnungen, Vereine und Einstellungen bleiben bei jedem Update erhalten. Vor einem Update während der
+Festtage trotzdem kurz eine [Datensicherung](#5-datensicherung) erstellen. Die automatische Suche lässt sich
+unter App-Einstellungen → Updates abschalten.
+
+> Version 1.0.0 kennt die Update-Funktion noch nicht. Wer sie installiert hat, installiert die nächste
+> Version einmalig von Hand wie oben beschrieben (Daten bleiben erhalten); danach geht es automatisch.
 
 ## 2. Einrichtung
 

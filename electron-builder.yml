@@ -8,7 +8,7 @@
 #            (alternativ APPLE_API_KEY, APPLE_API_KEY_ID, APPLE_API_ISSUER)
 #   Windows: WIN_CSC_LINK / WIN_CSC_KEY_PASSWORD (Code-Signing-Zertifikat) oder Azure Trusted Signing
 #            (win.azureSignOptions + AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET)
-# Details: README.md, Abschnitt „Code-Signierung“.
+# Details: docs/development.md, Abschnitt „Code-Signierung“.
 
 appId: de.festbuero.app
 # WICHTIG: ASCII-Produktname für Bundle/Executable/Helper-Apps. Mit „ü“ legt electron-builder unter
@@ -70,8 +70,15 @@ extraResources:
 # mit echtem Zertifikat ohne Wirkung. Siehe scripts/adhoc-sign-mac.cjs
 afterSign: scripts/adhoc-sign-mac.cjs
 
-# Kein automatisches Veröffentlichen (Releases legt der GitHub-Workflow als Entwurf an)
-publish: null
+# Update-Quelle: GitHub-Releases (muss zu UPDATE_REPO in src/main/services/update-check.ts passen).
+# Daraus entstehen `app-update.yml` in der App und `latest.yml` neben dem Windows-Installer, die der
+# Updater (electron-updater) liest. Hochgeladen wird hier nichts (Skripte bauen mit `--publish never`);
+# den Release-Entwurf mit Installer, latest.yml und .blockmap legt der GitHub-Workflow an.
+publish:
+  provider: github
+  owner: mgmeinwi
+  repo: festbuero-app
+  releaseType: release
 
 mac:
   category: public.app-category.business

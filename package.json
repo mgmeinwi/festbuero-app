@@ -30,6 +30,7 @@
     "archiver": "^8.0.0",
     "better-sqlite3": "^13.1.1",
     "date-fns": "^4.4.0",
+    "electron-updater": "^6.8.11",
     "exceljs": "^4.4.0",
     "zod": "^4.6.7"
   },

@@ -15,7 +15,8 @@ describe('settings service', () => {
       defaultPrinter: null,
       lastFestivalId: null,
       setupCompleted: false,
-      theme: 'system'
+      theme: 'system',
+      autoUpdateCheck: true
     })
     expect(getSettings(db)).toEqual(DEFAULT_SETTINGS)
   })
@@ -28,6 +29,7 @@ describe('settings service', () => {
     expect(updateSettings({ lastFestivalId: 3 }, db).lastFestivalId).toBe(3)
     expect(updateSettings({ defaultPrinter: null }, db).defaultPrinter).toBeNull()
     expect(getSettings(db).theme).toBe('dark')
+    expect(updateSettings({ autoUpdateCheck: false }, db).autoUpdateCheck).toBe(false)
   })
 
   it('lehnt unbekannte Schlüssel und falsche Typen ab', () => {
