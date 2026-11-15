@@ -127,7 +127,8 @@ der Endbetrag bleibt immer sichtbar.
 
 ## Installation
 
-Die Installer stehen unter **Releases** bzw. als Artefakte des Workflows „Installer bauen“:
+**Download:** [Neueste Version auf der Release-Seite](https://github.com/mgmeinwi/festbuero-app/releases/latest) –
+dort unter „Assets“ die passende Datei herunterladen:
 
 | System | Datei |
 | --- | --- |
@@ -273,7 +274,7 @@ baut bei einem Tag `v*` (oder manuell über „Run workflow“) beide Installer 
 vorher Typen und Unit-Tests und legt bei Tags einen **Release-Entwurf** mit beiden Dateien an.
 
 ```bash
-git tag v0.1.0 && git push origin v0.1.0
+git tag v1.0.0 && git push origin v1.0.0
 ```
 
 ## Code-Signierung
